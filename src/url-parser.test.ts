@@ -17,7 +17,29 @@ describe("GitHubUrlParser", () => {
         it("should throw error for invalid protocols", () => {
             const parser = new GitHubUrlParser();
 
-            expect(() => parser.parseUrl("ftp://github.com/microsoft/typescript")).toThrow("Not a valid GitHub URL");
+            expect(() => parser.parseUrl("ftp://github.com/microsoft/typescript"))
+                .toThrow("Not a valid GitHub URL");
+        })
+
+        it("should reject non-GitHub URLs", () => {
+            const parser = new GitHubUrlParser();
+
+            expect(() => parser.parseUrl("https://gitlab.com/microsoft/typescript"))
+                .toThrow("Not a valid GitHub URL");
+        })
+
+        it("should throw TypeError for malformed URLs", () => {
+            const parser = new GitHubUrlParser();
+
+            expect(() => parser.parseUrl("not-a-url"))
+                .toThrow(TypeError);
+        })
+
+        it("should throw error for GitHub URLs without complete repository path", () => {
+            const parser = new GitHubUrlParser();
+
+            expect(() => parser.parseUrl("https://github.com/microsoft"))
+                .toThrow("Not a valid GitHub URL");
         })
     });
 });
