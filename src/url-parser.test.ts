@@ -21,13 +21,6 @@ describe("GitHubUrlParser", () => {
                 .toThrow("Not a valid GitHub URL");
         })
 
-        it("should reject non-GitHub URLs", () => {
-            const parser = new GitHubUrlParser();
-
-            expect(() => parser.parseUrl("https://gitlab.com/microsoft/typescript"))
-                .toThrow("Not a valid GitHub URL");
-        })
-
         it("should throw TypeError for malformed URLs", () => {
             const parser = new GitHubUrlParser();
 
@@ -35,11 +28,18 @@ describe("GitHubUrlParser", () => {
                 .toThrow(TypeError);
         })
 
-        it("should throw error for GitHub URLs without complete repository path", () => {
+        it("should provide specific error message for missing repository", () => {
             const parser = new GitHubUrlParser();
 
-            expect(() => parser.parseUrl("https://github.com/microsoft"))
-                .toThrow("Not a valid GitHub URL");
+            expect(() => parser.parseUrl("https://github.com/owner"))
+                .toThrow("GitHub URL must include both owner and repository (github.com/owner/repo)");
+        })
+
+        it("should provide specific error messages for non-GitHub domains", () => {
+            const parser = new GitHubUrlParser();
+
+            expect(() => parser.parseUrl("https://gitlab.com/owner/repo"))
+                .toThrow('URL must be from github.com domain, got: gitlab.com')
         })
     });
 });

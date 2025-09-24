@@ -11,13 +11,13 @@ export class GitHubUrlParser {
 
         // Check for valid domain
         if (!(parsedUrl.host === "github.com")) {
-            throw new Error("Not a valid GitHub URL");
+            throw new Error(`URL must be from github.com domain, got: ${parsedUrl.host}`);
         }
 
         // split the pathname and filter out empty segments
         const segments = parsedUrl.pathname.split("/").filter(Boolean);
         if (segments.length < 2) {
-            throw new Error("Not a valid GitHub URL");
+            throw new Error("GitHub URL must include both owner and repository (github.com/owner/repo)");
         }
 
         return {
