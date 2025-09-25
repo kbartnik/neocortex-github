@@ -1,28 +1,24 @@
-// src/url-parser.ts
-export class GitHubUrlParser {
-    parseUrl(url: string) {
-        // Parse URL segments
-        const parsedUrl = new URL(url);
+export const parseGitHubUrl = (url: string)=>  {
+    const parsedUrl = new URL(url);
 
-        // Check for valid protocols first - catches invalid protocols early
-        if (!(parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:")) {
-            throw new Error("Not a valid GitHub URL");
-        }
+    // Check for valid protocols first
+    if (!(parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:")) {
+        throw new Error("Not a valid GitHub URL");
+    }
 
-        // Check for valid domain
-        if (!(parsedUrl.host === "github.com")) {
-            throw new Error(`URL must be from github.com domain, got: ${parsedUrl.host}`);
-        }
+    // Check for valid domain
+    if (!(parsedUrl.host === "github.com")) {
+        throw new Error(`URL must be from github.com domain, got: ${parsedUrl.host}`);
+    }
 
-        // split the pathname and filter out empty segments
-        const segments = parsedUrl.pathname.split("/").filter(Boolean);
-        if (segments.length < 2) {
-            throw new Error("GitHub URL must include both owner and repository (github.com/owner/repo)");
-        }
+    // split the pathname into segments and filter out empties
+    const segments = parsedUrl.pathname.split("/").filter(Boolean);
+    if (segments.length < 2) {
+        throw new Error("GitHub URL must include both owner and repository (github.com/owner/repo)");
+    }
 
-        return {
-            owner: segments[0],
-            repo: segments[1]
-        }
+    return {
+        owner: segments[0],
+        repo: segments[1]
     }
 }
