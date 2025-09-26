@@ -1,4 +1,4 @@
-import type { GitHubTarget } from "./types/GitHubTarget";
+import type { GitHubTarget } from "types";
 import {
   isNonZeroDigitString,
   isValidOwnerName,
@@ -26,21 +26,26 @@ export const parseGitHubUrl = (url: string): GitHubTarget => {
     throw new Error("GitHub URL must include /owner/repo");
   }
 
-  const [owner, repo, resource, id] = segments;
   // e.g. ["octocat", "hello-world", "issues", "42"]
+  const [ownerRaw, repoRaw, resource, id] = segments as [
+    string,
+    string,
+    string?,
+    string?,
+  ];
 
-  let repoName = repo;
+  let repoName = repoRaw;
   if (repoName.endsWith(".git")) {
     repoName = repoName.slice(0, -4);
   }
 
-  if (!isValidRepoName(repo)) {
+  if (!isValidRepoName(repoName)) {
     throw new Error(
       "Invalid repo: 1–100 chars using letters, digits, underscore, dot, or hyphen",
     );
   }
 
-  const ownerName = owner.toLowerCase();
+  const ownerName = ownerRaw.toLowerCase();
   if (!isValidOwnerName(ownerName)) {
     throw new Error(
       "Invalid owner: must be 1–39 chars, alphanumeric, may contain hyphens, and cannot start or end with a hyphen",

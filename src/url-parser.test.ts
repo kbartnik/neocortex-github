@@ -1,7 +1,6 @@
 // src/url-parser.test.ts
 import { describe, expect, it } from "vitest";
 import { parseGitHubUrl } from "./url-parser";
-import { isNonZeroDigitString } from "./validation";
 
 describe("parseGitHubUrl", () => {
   it("should parse a basic repository URL", () => {

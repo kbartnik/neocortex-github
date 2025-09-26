@@ -6,10 +6,55 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "warn"
+        "noExplicitAny": "error",
+        "noImplicitAnyLet": "error",
+        "noExtraNonNullAssertion": "warn",
+        "noConfusingVoidType": "warn",
+        "noEvolvingTypes": "warn",
+        "noConstEnum": "error"
+      },
+      "correctness": {
+        "noUnusedVariables": {
+          "level": "error",
+          "options": { "ignoreRestSiblings": true }
+        },
+        "noUnusedImports": "error",
+        "noVoidTypeReturn": "error"
+      },
+      "style": {
+        "useImportType": {
+          "level": "error",
+          "options": { "style": "separatedType" }
+        },
+        "useExportType": "error",
+        "useConsistentArrayType": "error",
+        "useShorthandFunctionType": "warn",
+        "useUnifiedTypeSignatures": "warn",
+        "noInferrableTypes": "warn",
+        "noNamespace": "error"
+      },
+      "nursery": {
+        "useConsistentTypeDefinitions": {
+          "level": "warn",
+          "options": { "style": "type" }
+        },
+        "useExplicitType": "warn"
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["src/**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "warn",
+            "noExtraNonNullAssertion": "off"
+          }
+        }
+      }
+    }
+  ],
   "formatter": {
     "enabled": true,
     "indentStyle": "space",

@@ -90,7 +90,7 @@ describe("validation module", () => {
       "MixedCase", // uppercase letters are allowed
       "a".repeat(39), // max length
       "Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z",
-      "z".repeat(38) + "9",
+      `${"z".repeat(38)}9`,
     ] as const;
     const invalidOwners = [
       "", // empty
