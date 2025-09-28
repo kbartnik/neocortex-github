@@ -1,6 +1,8 @@
 // src/url-parser.test.ts
+
+import type { GitHubTarget } from "types";
 import { describe, expect, it } from "vitest";
-import { parseGitHubUrl } from "./url-parser";
+import { buildPath, buildUrl, parseGitHubUrl } from "./url-parser";
 
 describe("parseGitHubUrl", () => {
   it("should parse a basic repository URL", () => {
@@ -147,6 +149,66 @@ describe("parseGitHubUrl", () => {
 
     expect(() => parseGitHubUrl(url)).toThrow(
       "Invalid repo: 1–100 chars using letters, digits, underscore, dot, or hyphen",
+    );
+  });
+});
+
+describe("buildPath", () => {
+  it("builds '/owner/repo' for a repo target", () => {
+    const input: GitHubTarget = {
+      kind: "repo",
+      owner: "owner",
+      repo: "repo",
+    };
+
+    expect(buildPath(input)).toBe("/owner/repo");
+  });
+
+  it("builds '/owner/repo/issues/42' for an issue target", () => {
+    const input: GitHubTarget = {
+      kind: "issue",
+      owner: "owner",
+      repo: "repo",
+      number: 42,
+    };
+
+    expect(buildPath(input)).toBe("/owner/repo/issues/42");
+  });
+});
+
+describe("buildUrl", () => {
+  it("builds full repo URL", () => {
+    const input: GitHubTarget = {
+      kind: "repo",
+      owner: "owner",
+      repo: "repo",
+    };
+
+    expect(buildUrl(input).toString()).toBe("https://github.com/owner/repo");
+  });
+
+  it("builds full issue URL", () => {
+    const input: GitHubTarget = {
+      kind: "issue",
+      owner: "owner",
+      repo: "repo",
+      number: 42,
+    };
+
+    expect(buildUrl(input).toString()).toBe(
+      "https://github.com/owner/repo/issues/42",
+    );
+  });
+
+  it("supports custom base", () => {
+    const input: GitHubTarget = {
+      kind: "repo",
+      owner: "acme",
+      repo: "widgets",
+    };
+
+    expect(buildUrl(input, "https://github.myco.com").toString()).toBe(
+      "https://github.myco.com/acme/widgets",
     );
   });
 });

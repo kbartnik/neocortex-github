@@ -1,4 +1,4 @@
-import type { GitHubTarget } from "types";
+import type { GitHubTarget, IssueTarget, RepoTarget } from "types";
 import {
   isNonZeroDigitString,
   isValidOwnerName,
@@ -14,7 +14,7 @@ export const parseGitHubUrl = (url: string): GitHubTarget => {
   }
 
   // Check for valid domain
-  if (!(parsedUrl.hostname === "github.com")) {
+  if (parsedUrl.hostname !== "github.com") {
     throw new Error(
       `Unsupported host: expected github.com, got ${parsedUrl.hostname}`,
     );
@@ -34,10 +34,7 @@ export const parseGitHubUrl = (url: string): GitHubTarget => {
     string?,
   ];
 
-  let repoName = repoRaw;
-  if (repoName.endsWith(".git")) {
-    repoName = repoName.slice(0, -4);
-  }
+  const repoName = repoRaw.endsWith(".git") ? repoRaw.slice(0, -4) : repoRaw;
 
   if (!isValidRepoName(repoName)) {
     throw new Error(
@@ -66,3 +63,26 @@ export const parseGitHubUrl = (url: string): GitHubTarget => {
 
   return { kind: "repo", owner: ownerName, repo: repoName };
 };
+
+type BuildersFor<T extends { kind: PropertyKey }> = {
+  [K in T["kind"]]: (t: Extract<T, { kind: K }>) => string;
+};
+
+const builders: BuildersFor<GitHubTarget> = {
+  repo: (t: RepoTarget): string => `/${t.owner}/${t.repo}`,
+  issue: (t: IssueTarget): string => `/${t.owner}/${t.repo}/issues/${t.number}`,
+} satisfies BuildersFor<GitHubTarget>;
+
+export const buildPath = (t: GitHubTarget): string => {
+  switch (t.kind) {
+    case "repo":
+      return builders.repo(t);
+    case "issue":
+      return builders.issue(t);
+  }
+};
+
+export const buildUrl = (
+  target: GitHubTarget,
+  base: string = "https://github.com",
+): URL => new URL(buildPath(target), base);

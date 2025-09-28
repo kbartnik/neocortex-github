@@ -30,7 +30,7 @@
         "useConsistentArrayType": "error",
         "useShorthandFunctionType": "warn",
         "useUnifiedTypeSignatures": "warn",
-        "noInferrableTypes": "warn",
+        "noInferrableTypes": "off",
         "noNamespace": "error"
       },
       "nursery": {
