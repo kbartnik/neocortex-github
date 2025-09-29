@@ -1,3 +1,4 @@
 export { gitHubUrl } from "./gitHubUrl";
-export type { GitHubTarget, IssueTarget, RepoTarget } from "./types";
+export { GitHubClient } from "./GitHubClient";
+export type { GitHubTarget, IssueTarget, Issue, RepoTarget } from "./types";
 export { isIssueTarget, isRepoTarget } from "./types/GitHubTarget";
