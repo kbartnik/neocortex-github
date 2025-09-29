@@ -22,14 +22,14 @@ describe("GitHubTarget type guards", () => {
     it("should identify issue targets correctly", () => {
         const issueTarget: GitHubTarget = { kind: "issue", owner: "microsoft", repo: "typescript", number: 42 };
 
-        const result = !isRepoTarget(issueTarget);
+        const result = isIssueTarget(issueTarget);
         expect(result).toBe(true);
     })
 
     it("should reject repo targets as issue targets", () => {
         const repoTarget: GitHubTarget = { kind: "repo", owner: "microsoft", repo: "typescript" };
 
-        const result = !isRepoTarget(repoTarget);
+        const result = isIssueTarget(repoTarget);
 
         expect(result).toBe(false);
     });
