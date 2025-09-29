@@ -1,4 +1,6 @@
 import type { Issue } from "types";
+import {NotFoundError} from "./errors";
+import { HTTP_STATUS } from "./shared/HttpStatusCodes";
 
 /**
  * Client for interacting with the GitHub REST API.
@@ -46,12 +48,24 @@ class GitHubClient {
    */
   async getIssue(owner: string, repo: string, number: number): Promise<Issue> {
     const url = `${this.baseUrl}/repos/${owner}/${repo}/issues/${number}`;
+
+    const timestamp = new Date();
+
     const response = await fetch(url, { headers: this.headers });
 
     if (!response.ok) {
-      throw new Error(
-        `GitHub API request failed: ${response.status} ${response.statusText}`,
-      );
+      if (response.status === HTTP_STATUS.NOT_FOUND) {
+          const rawResponse = await response.json();
+          throw new NotFoundError(
+              { owner, repo, number },
+              url,
+              timestamp,
+              response.status,
+              response.statusText,
+              rawResponse,
+              `Issue #${number} not found in ${owner}/${repo}`
+          );
+      }
     }
 
     return response.json();
