@@ -1,5 +1,5 @@
 import { describe, expect, it, vi} from "vitest";
-import { GitHubClient } from "../src/GitHubClient";
+import { GitHubClient } from "../src";
 
 describe("GitHubClient", () => {
     it("should fetch an issue from GitHub API", async () => {

@@ -15,7 +15,9 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist coverage node_modules/.cache"
+    "clean": "rm -rf dist coverage node_modules/.cache",
+    "docs": "typedoc",
+    "docs:watch": "nodemon --watch src --ext ts --exec \"pnpm docs\""
   },
   "keywords": [],
   "author": "",
@@ -26,7 +28,10 @@
     "@types/node": "^24.5.2",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
+    "nodemon": "^3.1.10",
     "tsx": "^4.20.5",
+    "typedoc": "^0.28.13",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }

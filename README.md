@@ -1,10 +1,15 @@
-# Neocortex GitHub Toolkit
+# neocortex-github
 
-Utilities and client helpers for working with the GitHub REST API, written in TypeScript.
+GitHub API toolkit for the NeoCortex cognitive prosthetic system.
 
 ## Quick Start
-- Install dependencies: `pnpm install`
-- Run the development watcher: `pnpm dev`
-- Execute tests: `pnpm test`
+pnpm install
+pnpm test
 
-For detailed contribution steps, see the [Repository Guidelines](./AGENTS.md).
+## What's What
+- `gitHubUrl` - Parse & build GitHub URLs
+- `GitHubClient` - Fetch issues from GitHub API
+- `types/` - All type definitions
+
+## Architecture
+Functions for stateless, Classes for stateful.

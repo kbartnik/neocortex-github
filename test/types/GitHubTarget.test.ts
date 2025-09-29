@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {isIssueTarget, isRepoTarget} from "../../src";
-import type {GitHubTarget} from "../../src/types";
+import type {GitHubTarget} from "../../src";
 
 describe("GitHubTarget type guards", () => {
     it("should identify repo targets correctly", () => {
