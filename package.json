@@ -34,5 +34,8 @@
     "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "uuidv7": "^1.0.2"
   }
 }
