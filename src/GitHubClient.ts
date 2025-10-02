@@ -1,75 +1,42 @@
-import type { Issue } from "types";
+import type {Issue} from "types";
+import {HTTP_STATUS} from "./shared/HttpStatusCodes";
 import {NotFoundError} from "./errors";
-import { HTTP_STATUS } from "./shared/HttpStatusCodes";
 
-/**
- * Client for interacting with the GitHub REST API.
- *
- * Provides methods to fetch GitHub resources like issues, with built-in error handling
- * and proper API headers. Uses GitHub API v3 with JSON format.
- *
- * @example
- * ```typescript
- * import { GitHubClient } from 'neocortex-github';
- *
- * const client = new GitHubClient();
- * const issue = await client.getIssue('octocat', 'hello-world', 42);
- * console.log(issue.title);
- * ```
- */
-class GitHubClient {
-  private baseUrl = "https://api.github.com";
-  private headers = {
-    Accept: "application/vnd.github.v3+json",
-    "User-Agent": "neocortex-github/1.0.0",
-  };
+export class GitHubClient {
+    constructor(private readonly token?: string) {}
 
-  /**
-   * Fetches a GitHub issue by repository and issue number.
-   *
-   * @param owner - The repository owner (username or organization)
-   * @param repo - The repository name
-   * @param number - The issue number (must be a positive integer)
-   * @returns A Promise that resolves to the Issue object
-   * @throws {Error} When the API request fails (network error, not found, rate limited, etc.)
-   *
-   * @example
-   * ```typescript
-   * const client = new GitHubClient();
-   *
-   * try {
-   *   const issue = await client.getIssue('microsoft', 'typescript', 1234);
-   *   console.log(`Issue: ${issue.title}`);
-   *   console.log(`State: ${issue.state}`);
-   * } catch (error) {
-   *   console.error('Failed to fetch issue:', error.message);
-   * }
-   * ```
-   */
-  async getIssue(owner: string, repo: string, number: number): Promise<Issue> {
-    const url = `${this.baseUrl}/repos/${owner}/${repo}/issues/${number}`;
+    async getIssue(owner: string, repo: string, issueNumber: number): Promise<Issue> {
+        const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`;
 
-    const timestamp = new Date();
+        const headers: Record<string, string> = {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'neocortex-github/1.0.0'
+        };
 
-    const response = await fetch(url, { headers: this.headers });
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
 
-    if (!response.ok) {
-      if (response.status === HTTP_STATUS.NOT_FOUND) {
-          const rawResponse = await response.json();
-          throw new NotFoundError(
-              { owner, repo, number },
-              url,
-              timestamp,
-              response.status,
-              response.statusText,
-              rawResponse,
-              `Issue #${number} not found in ${owner}/${repo}`
-          );
-      }
-    }
+        const response = await fetch(url, { headers });
 
-    return response.json();
-  }
-}
+        if (!response.ok) {
+            if (response.status === HTTP_STATUS.NOT_FOUND) {
+                // Capture the raw response body for debugging context
+                const rawResponse = await response.text();
 
-export { GitHubClient };
+                // TODO: NotFoundError is verbose - refactor when we have multiple calls
+                throw new NotFoundError(
+                    { owner, repo, number: issueNumber },
+                    url,
+                    new Date(),
+                    response.status,
+                    response.statusText,
+                    rawResponse,
+                    `GitHub issue not found: ${owner}/${repo}#${issueNumber}`
+                );
+            }
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+
+        return response.json();
+    }}
