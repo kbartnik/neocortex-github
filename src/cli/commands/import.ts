@@ -2,7 +2,7 @@ import { Result, err, ok } from "neverthrow";
 import {gitHubUrl} from "../../gitHubUrl";
 import { GitHubClient } from "../../clients/GitHubClient"
 import { transformGitHubIssue} from "../../ir/transforms";
-import { NotFoundError} from "../../errors";
+import { NotFoundError, InternalError } from "../../errors";
 import type { CliError } from "../errors";
 import type { GitHubIssueNode } from "../../ir/types";
 
@@ -20,12 +20,11 @@ export const importCommand = async (args: string[]): Promise<Result<GitHubIssueN
     const url = args[0]
     if (url === undefined) {
         // This should never happen with process.argv, but TypeScript requires the check
-        return err({
-            type: "missing_argument",
-            command: "import",
-            expected: "<github-url>"
-        });
-    };
+        throw new InternalError(
+            "args[0] is undefined despite args.length > 0",
+            { argsLength: args.length, args }
+        );
+    }
 
     const parseResult = gitHubUrl.parseResult(url);
     if (parseResult.isErr()) {

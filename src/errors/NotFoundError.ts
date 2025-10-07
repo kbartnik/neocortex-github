@@ -21,21 +21,22 @@ export type NotFoundErrorOptions = {
     statusText?: string;
     /** Raw response body from GitHub API for debugging */
     rawResponse?: string;
+    /** Additional arbitrary debugging data specific to this error instance */
+    data?: Record<string, unknown>;
 };
 
 export class NotFoundError extends Error {
-    // Store these as public readonly so they're still accessible
     public readonly timestamp: Date;
     public readonly statusCode: number | undefined;
     public readonly statusText: string | undefined;
     public readonly rawResponse: string | undefined;
+    public readonly data: Record<string, unknown>;
 
     constructor(
         public readonly target: { owner: string; repo: string; number?: number },
         public readonly requestUrl: string,
         options: NotFoundErrorOptions = {}
     ) {
-        // Auto-generate message from target to ensure consistency
         const resourceId = target.number !== undefined
             ? `${target.owner}/${target.repo}#${target.number}`
             : `${target.owner}/${target.repo}`;
@@ -43,11 +44,10 @@ export class NotFoundError extends Error {
         super(`GitHub resource not found: ${resourceId}`);
 
         this.name = 'NotFoundError';
-
-        // Extract options with sensible defaults
         this.timestamp = options.timestamp ?? new Date();
         this.statusCode = options.statusCode;
         this.statusText = options.statusText;
         this.rawResponse = options.rawResponse;
+        this.data = options.data ?? {};
     }
 }
