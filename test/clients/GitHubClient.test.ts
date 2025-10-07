@@ -1,6 +1,7 @@
 // test/clients/gitHub.test.ts
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { GitHubClient } from '../../src';
 
 describe('GitHubClient', () => {

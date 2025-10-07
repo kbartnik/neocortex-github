@@ -1,6 +1,6 @@
 import type {Issue} from "types";
-import {HTTP_STATUS} from "./shared/HttpStatusCodes";
-import {NotFoundError} from "./errors";
+import {HTTP_STATUS} from "../shared/HttpStatusCodes";
+import {NotFoundError} from "../errors";
 
 export class GitHubClient {
     constructor(private readonly token?: string) {}

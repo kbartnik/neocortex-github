@@ -1,4 +1,4 @@
-import { GitHubClient } from "./GitHubClient";
+import { GitHubClient } from "./clients/GitHubClient";
 
 const client = new GitHubClient();
 

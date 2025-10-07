@@ -1,17 +1,18 @@
-import type { GitHubTarget, IssueTarget, RepoTarget } from "types";
+import type {GitHubTarget, IssueTarget, RepoTarget} from "types";
+import {Result, ok, err} from "neverthrow";
 import {
-  isNonZeroDigitString,
-  isValidOwnerName,
-  isValidRepoName,
+    isNonZeroDigitString,
+    isValidOwnerName,
+    isValidRepoName,
 } from "./shared/validation";
 
 type BuildersFor<T extends { kind: PropertyKey }> = {
-  [K in T["kind"]]: (t: Extract<T, { kind: K }>) => string;
+    [K in T["kind"]]: (t: Extract<T, { kind: K }>) => string;
 };
 
 const builders: BuildersFor<GitHubTarget> = {
-  repo: (t: RepoTarget): string => `/${t.owner}/${t.repo}`,
-  issue: (t: IssueTarget): string => `/${t.owner}/${t.repo}/issues/${t.number}`,
+    repo: (t: RepoTarget): string => `/${t.owner}/${t.repo}`,
+    issue: (t: IssueTarget): string => `/${t.owner}/${t.repo}/issues/${t.number}`,
 } satisfies BuildersFor<GitHubTarget>;
 
 /**
@@ -30,12 +31,12 @@ const builders: BuildersFor<GitHubTarget> = {
  * ```
  */
 const buildPath = (t: GitHubTarget): string => {
-  switch (t.kind) {
-    case "repo":
-      return builders.repo(t);
-    case "issue":
-      return builders.issue(t);
-  }
+    switch (t.kind) {
+        case "repo":
+            return builders.repo(t);
+        case "issue":
+            return builders.issue(t);
+    }
 };
 
 /**
@@ -61,62 +62,88 @@ const buildPath = (t: GitHubTarget): string => {
  * ```
  */
 const parse = (url: string): GitHubTarget => {
-  const parsedUrl = new URL(url);
+    const parsedUrl = new URL(url);
 
-  // Check for valid protocols first
-  if (parsedUrl.protocol !== "https:") {
-    throw new Error("HTTPS is required for GitHub URLs");
-  }
-
-  // Check for valid domain
-  if (parsedUrl.hostname !== "github.com") {
-    throw new Error(
-      `Unsupported host: expected github.com, got ${parsedUrl.hostname}`,
-    );
-  }
-
-  // split the pathname into segments and filter out empties
-  const segments = parsedUrl.pathname.split("/").filter(Boolean);
-  if (segments.length < 2) {
-    throw new Error("GitHub URL must include /owner/repo");
-  }
-
-  // e.g. ["octocat", "hello-world", "issues", "42"]
-  const [ownerRaw, repoRaw, resource, id] = segments as [
-    string,
-    string,
-    string?,
-    string?,
-  ];
-
-  const repoName = repoRaw.endsWith(".git") ? repoRaw.slice(0, -4) : repoRaw;
-
-  if (!isValidRepoName(repoName)) {
-    throw new Error(
-      "Invalid repo: 1–100 chars using letters, digits, underscore, dot, or hyphen",
-    );
-  }
-
-  const ownerName = ownerRaw.toLowerCase();
-  if (!isValidOwnerName(ownerName)) {
-    throw new Error(
-      "Invalid owner: must be 1–39 chars, alphanumeric, may contain hyphens, and cannot start or end with a hyphen",
-    );
-  }
-
-  if (resource === "issues") {
-    if (!isNonZeroDigitString(id)) {
-      throw new Error("Issue number must be a positive integer");
+    // Check for valid protocols first
+    if (parsedUrl.protocol !== "https:") {
+        throw new Error("HTTPS is required for GitHub URLs");
     }
-    return {
-      kind: "issue",
-      owner: ownerName,
-      repo: repoName,
-      number: Number(id),
-    };
-  }
 
-  return { kind: "repo", owner: ownerName, repo: repoName };
+    // Check for valid domain
+    if (parsedUrl.hostname !== "github.com") {
+        throw new Error(
+            `Unsupported host: expected github.com, got ${parsedUrl.hostname}`,
+        );
+    }
+
+    // split the pathname into segments and filter out empties
+    const segments = parsedUrl.pathname.split("/").filter(Boolean);
+    if (segments.length < 2) {
+        throw new Error("GitHub URL must include /owner/repo");
+    }
+
+    // e.g. ["octocat", "hello-world", "issues", "42"]
+    const [ownerRaw, repoRaw, resource, id] = segments as [
+        string,
+        string,
+        string?,
+        string?,
+    ];
+
+    const repoName = repoRaw.endsWith(".git") ? repoRaw.slice(0, -4) : repoRaw;
+
+    if (!isValidRepoName(repoName)) {
+        throw new Error(
+            "Invalid repo: 1–100 chars using letters, digits, underscore, dot, or hyphen",
+        );
+    }
+
+    const ownerName = ownerRaw.toLowerCase();
+    if (!isValidOwnerName(ownerName)) {
+        throw new Error(
+            "Invalid owner: must be 1–39 chars, alphanumeric, may contain hyphens, and cannot start or end with a hyphen",
+        );
+    }
+
+    if (resource === "issues") {
+        if (!isNonZeroDigitString(id)) {
+            throw new Error("Issue number must be a positive integer");
+        }
+        return {
+            kind: "issue",
+            owner: ownerName,
+            repo: repoName,
+            number: Number(id),
+        };
+    }
+
+    return {kind: "repo", owner: ownerName, repo: repoName};
+};
+
+/**
+ * Parses a GitHub URL into a typed target object returning a Result instead of throwing.
+ *
+ * @param url - The GitHub URL to parse
+ * @returns - Result containing either the parsed GitHubTarget or an error message
+ *
+ * @example
+ * ``typescript
+ * const result = parseResult("https://github.com/octocat/hello-world");
+ * if (result.isOk()) {
+ *   console.log(result.value); // { kind: "repo", owner: "octocat", repo: "hello-world" }
+ * } else {
+ *   console.error(result.error); // Error message explaining what went wrong
+ * }
+ * ```
+ */
+const parseResult = (url: string): Result<GitHubTarget, string> => {
+    try {
+        const target = parse(url);
+        return ok(target);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return err(message);
+    }
 };
 
 /**
@@ -141,22 +168,24 @@ const parse = (url: string): GitHubTarget => {
  * ```
  */
 const build = (
-  target: GitHubTarget,
-  baseUrl: string = "https://github.com",
+    target: GitHubTarget,
+    baseUrl: string = "https://github.com",
 ): URL => {
-  return new URL(buildPath(target), baseUrl);
+    return new URL(buildPath(target), baseUrl);
 };
 
 /**
  * Type definition for the GitHub URL API.
  */
 type GitHubUrlAPI = {
-  /** Generates the path portion of a GitHub URL from a target object */
-  buildPath: (target: GitHubTarget) => string;
-  /** Parses a GitHub URL string into a typed target object */
-  parse: (url: string) => GitHubTarget;
-  /** Constructs a complete GitHub URL from a target object */
-  build: (target: GitHubTarget, baseUrl?: string) => URL;
+    /** Generates the path portion of a GitHub URL from a target object */
+    buildPath: (target: GitHubTarget) => string;
+    /** Parses a GitHub URL string into a typed target object */
+    parse: (url: string) => GitHubTarget;
+    /** Parses a GitHub URL into a typed target object returning a Result instead of throwing */
+    parseResult: (url: string) => Result<GitHubTarget, string>;
+    /** Constructs a complete GitHub URL from a target object */
+    build: (target: GitHubTarget, baseUrl?: string) => URL;
 };
 
 /**
@@ -183,8 +212,10 @@ type GitHubUrlAPI = {
  * ```
  */
 export const gitHubUrl: GitHubUrlAPI = {
-  buildPath,
-  parse,
-  build,
+    buildPath,
+    parse,
+    parseResult,
+    build,
 };
-export type { GitHubUrlAPI };
+
+export type {GitHubUrlAPI};
