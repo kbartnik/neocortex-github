@@ -37,7 +37,8 @@ describe("GitHubClient", () => {
             ok: false,          // This is crucial - tells the client it's an error response
             status: 404,
             statusText: "Not Found",
-            json: async () => mockResponse
+            json: async () => mockResponse,
+            text: async () => JSON.stringify(mockResponse)
         } as Response);
 
         const client = new GitHubClient();
@@ -56,7 +57,7 @@ describe("GitHubClient", () => {
                 expect(error.requestUrl).toBe("https://api.github.com/repos/microsoft/nonexistent-repo/issues/999");
                 expect(error.statusCode).toBe(404);
                 expect(error.statusText).toBe("Not Found");
-                expect(error.rawResponse).toEqual(mockResponse);
+                expect(error.rawResponse).toEqual(JSON.stringify(mockResponse));
                 expect(error.timestamp).toBeInstanceOf(Date);
             }
         }

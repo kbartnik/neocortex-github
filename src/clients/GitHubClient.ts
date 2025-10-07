@@ -24,15 +24,15 @@ export class GitHubClient {
                 // Capture the raw response body for debugging context
                 const rawResponse = await response.text();
 
-                // TODO: NotFoundError is verbose - refactor when we have multiple calls
                 throw new NotFoundError(
                     { owner, repo, number: issueNumber },
                     url,
-                    new Date(),
-                    response.status,
-                    response.statusText,
-                    rawResponse,
-                    `GitHub issue not found: ${owner}/${repo}#${issueNumber}`
+                    {
+                        timestamp: new Date(),
+                        statusCode: response.status,
+                        statusText: response.statusText,
+                        rawResponse
+                    }
                 );
             }
             throw new Error(`GitHub API error: ${response.status}`);
