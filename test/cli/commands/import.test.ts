@@ -3,6 +3,7 @@
 import { vi, beforeEach, afterEach, describe, it, expect } from 'vitest';
 import { importCommand } from '../../../src/cli/commands/import';
 import {GitHubClient} from "../../../src";
+import {ResultAsync} from "neverthrow";
 
 describe('importCommand', () => {
     let mockGetIssue: ReturnType<typeof vi.fn>;
@@ -71,7 +72,7 @@ describe('importCommand', () => {
     describe("successful import", () => {
         it("returns IR node when issue is fetched successfully", async () => {
             // Mock a successful API response with realistic GitHub issue data
-            mockGetIssue.mockResolvedValue({
+            const mockIssue = {
                 number: 123,
                 title: "Test Issue Title",
                 state: "open",
@@ -79,7 +80,11 @@ describe('importCommand', () => {
                 labels: [{ name: "bug"}, {name: "enhancement" }],
                 assignees: [{ login: "dev1" }, { login: "dev2" }],
                 created_at: "2025-01-15T12:00:00Z"
-            });
+            };
+
+            // The key change: wrap the issue in ok() to create a ResultAsync
+            // ResultAsync.fromSafePromise creates a ResultAsync from a Promise that won't fail
+            mockGetIssue.mockReturnValue(ResultAsync.fromSafePromise(Promise.resolve(mockIssue)));
 
             const result = await importCommand([
                 "https://github.com/microsoft/typescript/issues/123"
