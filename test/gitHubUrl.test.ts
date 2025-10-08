@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { gitHubUrl } from "../src/gitHubUrl";
 import type {GitHubTarget} from "../src/types";
+import * as url from "node:url";
 
 describe("gitHubUrl module", () => {
     describe("parse", () => {
@@ -9,7 +10,10 @@ describe("gitHubUrl module", () => {
 
             const result = gitHubUrl.parse(url);
 
-            expect(result).toEqual({ kind: "repo", owner: "microsoft", repo:"typescript"});
+            expect(result.isOk()).toBe(true);
+            if (result.isOk()) {
+                expect(result.value).toEqual({ kind: "repo", owner: "microsoft", repo:"typescript"});
+            }
         });
 
         it("should parse an issue URL", () => {
@@ -17,12 +21,10 @@ describe("gitHubUrl module", () => {
 
             const result = gitHubUrl.parse(url);
 
-            expect(result).toEqual({
-                kind: "issue",
-                owner: "microsoft",
-                repo: "typescript",
-                number: 123
-            });
+            expect(result.isOk()).toBe(true);
+            if (result.isOk()) {
+                expect(result.value).toEqual({ kind: "issue", owner: "microsoft", repo: "typescript", number: 123 });
+            }
         });
 
         it("should handle .git suffix in repo URL", () => {
@@ -30,7 +32,10 @@ describe("gitHubUrl module", () => {
 
             const result = gitHubUrl.parse(url);
 
-            expect(result).toEqual({ kind: "repo", owner: "microsoft", repo: "typescript" });
+            expect(result.isOk()).toBe(true);
+            if (result.isOk()) {
+                expect(result.value).toEqual({ kind: "repo", owner: "microsoft", repo: "typescript" });
+            }
         });
 
         it("should normalize owner name to lowercase", () => {
@@ -38,43 +43,104 @@ describe("gitHubUrl module", () => {
 
             const result = gitHubUrl.parse(url);
 
-            expect(result).toEqual({ kind: "repo", owner: "microsoft", repo: "TypeScript" });
+            expect(result.isOk()).toBe(true);
+            if (result.isOk()) {
+                expect(result.value).toEqual({ kind: "repo", owner: "microsoft", repo: "TypeScript" });
+            }
         });
 
-        it("should throw for non-HTTPS URLs", () => {
-            expect(() => gitHubUrl.parse("http://github.com/owner/repo"))
-                .toThrow("HTTPS is required for GitHub URLs");
+        it("should return Err for non-HTTPS URLs", () => {
+            const result = gitHubUrl.parse("http://github.com/owner/repo");
+
+            expect(result.isErr()).toBe(true);
+            if (result.isErr()) {
+                expect(result.error.type).toBe('invalid_protocol');
+                if (result.error.type === 'invalid_protocol') {
+                    expect(result.error.protocol).toBe('http:');
+                }
+            }
         });
 
-        it("should throw for invalid hostname", () => {
-            expect(() => gitHubUrl.parse("https://gitlab.com/owner/repo"))
-                .toThrow("Unsupported host: expected github.com, got gitlab.com");
+        it("should return Err for invalid hostname", () => {
+            const result = gitHubUrl.parse("https://gitlab.com/owner/repo");
+
+            expect(result.isErr()).toBe(true);
+            if (result.isErr()) {
+                expect(result.error.type).toBe('invalid_hostname');
+                if (result.error.type === 'invalid_hostname') {
+                    expect(result.error.hostname).toBe('gitlab.com');
+                }
+            }
         });
 
-        it("should throw for URLs without owner/repo", () => {
-            expect(() => gitHubUrl.parse("https://github.com/"))
-                .toThrow("GitHub URL must include /owner/repo");
+        it("should return Err for URLs without owner/repo", () => {
+            const missingRepoResult = gitHubUrl.parse("https://github.com/");
 
-            expect(() => gitHubUrl.parse("https://github.com/owner"))
-                .toThrow("GitHub URL must include /owner/repo");
+            expect(missingRepoResult.isErr()).toBe(true);
+            if (missingRepoResult.isErr()) {
+                expect(missingRepoResult.error.type).toBe('missing_path_segments');
+                if (missingRepoResult.error.type === 'missing_path_segments') {
+                    expect(missingRepoResult.error.url).toBe("https://github.com/");
+                }
+            }
+
+            const missingOwnerResult = gitHubUrl.parse("https://github.com/owner");
+
+            expect(missingOwnerResult.isErr()).toBe(true);
+            if (missingOwnerResult.isErr()) {
+                expect(missingOwnerResult.error.type).toBe('missing_path_segments');
+                if (missingOwnerResult.error.type === 'missing_path_segments') {
+                    expect(missingOwnerResult.error.url).toBe("https://github.com/owner");
+                }
+            }
         });
 
-        it("should throw for invalid repo names", () => {
-            expect(() => gitHubUrl.parse("https://github.com/owner/invalid@repo"))
-                .toThrow("Invalid repo: 1–100 chars using letters, digits, underscore, dot, or hyphen");
+        it("should return Err for invalid repo names", () => {
+            const result = gitHubUrl.parse("https://github.com/owner/invalid@repo");
+
+            expect(result.isErr()).toBe(true);
+            if (result.isErr()) {
+                expect(result.error.type).toBe('invalid_repo_name');
+                if (result.error.type === 'invalid_repo_name') {
+                    expect(result.error.repo).toBe("invalid@repo");
+                }
+            }
         });
 
-        it("should throw for invalid owner names", () => {
-            expect(() => gitHubUrl.parse("https://github.com/-invalid/repo"))
-                .toThrow("Invalid owner: must be 1–39 chars, alphanumeric, may contain hyphens, and cannot start or end with a hyphen");
+        it("should return Err for invalid owner names", () => {
+            const result = gitHubUrl.parse("https://github.com/-invalid/repo");
+
+            expect(result.isErr()).toBe(true);
+            if (result.isErr()) {
+                expect(result.error.type).toBe('invalid_owner_name');
+                if (result.error.type === 'invalid_owner_name') {
+                    expect(result.error.owner).toBe("-invalid");
+                }
+            }
         });
 
-        it("should throw for invalid issue numbers", () => {
-            expect(() => gitHubUrl.parse("https://github.com/owner/repo/issues/0"))
-                .toThrow("Issue number must be a positive integer");
+        it("should return Err for issue number 0", () => {
+            const zeroIssueNumberResult = gitHubUrl.parse("https://github.com/owner/repo/issues/0");
 
-            expect(() => gitHubUrl.parse("https://github.com/owner/repo/issues/abc"))
-                .toThrow("Issue number must be a positive integer");
+            expect(zeroIssueNumberResult.isErr()).toBe(true);
+            if (zeroIssueNumberResult.isErr()) {
+                expect(zeroIssueNumberResult.error.type).toBe('invalid_issue_number');
+                if (zeroIssueNumberResult.error.type === 'invalid_issue_number') {
+                    expect(zeroIssueNumberResult.error.value).toBe("0");
+                }
+            }
+        });
+
+        it("should return Err for non-numeric issue numbers", () => {
+            const nonNumericIssueNumberResult = gitHubUrl.parse("https://github.com/owner/repo/issues/abc");
+
+            expect(nonNumericIssueNumberResult.isErr()).toBe(true);
+            if (nonNumericIssueNumberResult.isErr()) {
+                expect(nonNumericIssueNumberResult.error.type).toBe('invalid_issue_number');
+                if (nonNumericIssueNumberResult.error.type === 'invalid_issue_number') {
+                    expect(nonNumericIssueNumberResult.error.value).toBe("abc");
+                }
+            }
         });
 
         it("should handle complex valid repo names", () => {
@@ -82,7 +148,10 @@ describe("gitHubUrl module", () => {
 
             const result = gitHubUrl.parse(url);
 
-            expect(result).toEqual({ kind: "repo", owner: "owner", repo: "repo_name-with.dots" });
+            expect(result.isOk()).toBe(true);
+            if (result.isOk()) {
+                expect(result.value).toEqual({ kind: "repo", owner: "owner", repo: "repo_name-with.dots" });
+            }
         });
     });
 

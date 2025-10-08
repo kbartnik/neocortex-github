@@ -6,6 +6,15 @@ import {
     isValidRepoName,
 } from "./shared/validation";
 
+export type GitHubUrlParseError =
+    | { type: "invalid_protocol"; protocol: string }
+    | { type: "invalid_hostname"; hostname: string }
+    | { type: "missing_path_segments"; url: string }
+    | { type: "invalid_repo_name"; repo: string }
+    | { type: "invalid_owner_name"; owner: string }
+    | { type: "invalid_issue_number"; value: string }
+    | { type: "invalid_url"; message: string };
+
 type BuildersFor<T extends { kind: PropertyKey }> = {
     [K in T["kind"]]: (t: Extract<T, { kind: K }>) => string;
 };
@@ -15,21 +24,6 @@ const builders: BuildersFor<GitHubTarget> = {
     issue: (t: IssueTarget): string => `/${t.owner}/${t.repo}/issues/${t.number}`,
 } satisfies BuildersFor<GitHubTarget>;
 
-/**
- * Generates the path portion of a GitHub URL from a target object.
- *
- * @param t - The GitHub target object (repository or issue)
- * @returns The URL path string (e.g., "/octocat/hello-world" or "/octocat/hello-world/issues/42")
- *
- * @example
- * ```typescript
- * const repoPath = buildPath({ kind: "repo", owner: "octocat", repo: "hello-world" });
- * // Returns: "/octocat/hello-world"
- *
- * const issuePath = buildPath({ kind: "issue", owner: "octocat", repo: "hello-world", number: 42 });
- * // Returns: "/octocat/hello-world/issues/42"
- * ```
- */
 const buildPath = (t: GitHubTarget): string => {
     switch (t.kind) {
         case "repo":
@@ -43,43 +37,47 @@ const buildPath = (t: GitHubTarget): string => {
  * Parses a GitHub URL string into a typed target object.
  *
  * @param url - The GitHub URL to parse (must be HTTPS and from github.com)
- * @returns A `GitHubTarget` object representing either a repository or issue
- * @throws {Error} When the URL is invalid, uses non-HTTPS protocol, wrong domain, or has invalid owner/repo names
+ * @returns A Result containing either the parsed GitHubTarget or a parsing error
  *
  * @example
  * ```typescript
  * // Parse repository URL
- * const repoTarget = parse("https://github.com/octocat/hello-world");
- * // Returns: { kind: "repo", owner: "octocat", repo: "hello-world" }
+ * const result = parse("https://github.com/octocat/hello-world");
+ * if (result.isOk()) {
+ *   console.log(result.value); // { kind: "repo", owner: "octocat", repo: "hello-world" }
+ * }
  *
  * // Parse issue URL
- * const issueTarget = parse("https://github.com/octocat/hello-world/issues/42");
- * // Returns: { kind: "issue", owner: "octocat", repo: "hello-world", number: 42 }
- *
- * // Handles .git suffix
- * const gitTarget = parse("https://github.com/octocat/hello-world.git");
- * // Returns: { kind: "repo", owner: "octocat", repo: "hello-world" }
+ * const result = parse("https://github.com/octocat/hello-world/issues/42");
+ * if (result.isOk()) {
+ *   console.log(result.value); // { kind: "issue", owner: "octocat", repo: "hello-world", number: 42 }
+ * }
  * ```
  */
-const parse = (url: string): GitHubTarget => {
-    const parsedUrl = new URL(url);
+export const parse = (url: string): Result<GitHubTarget, GitHubUrlParseError> => {
+    // First, try to parse as a URL at all - catch invalid URL strings
+    let parsedUrl: URL;
+    try {
+        parsedUrl = new URL(url);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return err({ type: 'invalid_url', message });
+    }
 
-    // Check for valid protocols first
+    // Check for valid protocol
     if (parsedUrl.protocol !== "https:") {
-        throw new Error("HTTPS is required for GitHub URLs");
+        return err({ type: 'invalid_protocol', protocol: parsedUrl.protocol });
     }
 
     // Check for valid domain
     if (parsedUrl.hostname !== "github.com") {
-        throw new Error(
-            `Unsupported host: expected github.com, got ${parsedUrl.hostname}`,
-        );
+        return err({ type: 'invalid_hostname', hostname: parsedUrl.hostname });
     }
 
-    // split the pathname into segments and filter out empties
+    // Split the pathname into segments and filter out empties
     const segments = parsedUrl.pathname.split("/").filter(Boolean);
     if (segments.length < 2) {
-        throw new Error("GitHub URL must include /owner/repo");
+        return err({ type: 'missing_path_segments', url });
     }
 
     // e.g. ["octocat", "hello-world", "issues", "42"]
@@ -93,57 +91,27 @@ const parse = (url: string): GitHubTarget => {
     const repoName = repoRaw.endsWith(".git") ? repoRaw.slice(0, -4) : repoRaw;
 
     if (!isValidRepoName(repoName)) {
-        throw new Error(
-            "Invalid repo: 1–100 chars using letters, digits, underscore, dot, or hyphen",
-        );
+        return err({ type: 'invalid_repo_name', repo: repoName });
     }
 
     const ownerName = ownerRaw.toLowerCase();
     if (!isValidOwnerName(ownerName)) {
-        throw new Error(
-            "Invalid owner: must be 1–39 chars, alphanumeric, may contain hyphens, and cannot start or end with a hyphen",
-        );
+        return err({ type: 'invalid_owner_name', owner: ownerName });
     }
 
     if (resource === "issues") {
         if (!isNonZeroDigitString(id)) {
-            throw new Error("Issue number must be a positive integer");
+            return err({ type: 'invalid_issue_number', value: id ?? '' });
         }
-        return {
+        return ok({
             kind: "issue",
             owner: ownerName,
             repo: repoName,
             number: Number(id),
-        };
+        });
     }
 
-    return {kind: "repo", owner: ownerName, repo: repoName};
-};
-
-/**
- * Parses a GitHub URL into a typed target object returning a Result instead of throwing.
- *
- * @param url - The GitHub URL to parse
- * @returns - Result containing either the parsed GitHubTarget or an error message
- *
- * @example
- * ``typescript
- * const result = parseResult("https://github.com/octocat/hello-world");
- * if (result.isOk()) {
- *   console.log(result.value); // { kind: "repo", owner: "octocat", repo: "hello-world" }
- * } else {
- *   console.error(result.error); // Error message explaining what went wrong
- * }
- * ```
- */
-const parseResult = (url: string): Result<GitHubTarget, string> => {
-    try {
-        const target = parse(url);
-        return ok(target);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return err(message);
-    }
+    return ok({ kind: "repo", owner: ownerName, repo: repoName });
 };
 
 /**
@@ -181,9 +149,7 @@ type GitHubUrlAPI = {
     /** Generates the path portion of a GitHub URL from a target object */
     buildPath: (target: GitHubTarget) => string;
     /** Parses a GitHub URL string into a typed target object */
-    parse: (url: string) => GitHubTarget;
-    /** Parses a GitHub URL into a typed target object returning a Result instead of throwing */
-    parseResult: (url: string) => Result<GitHubTarget, string>;
+    parse: (url: string) => Result<GitHubTarget, GitHubUrlParseError>;
     /** Constructs a complete GitHub URL from a target object */
     build: (target: GitHubTarget, baseUrl?: string) => URL;
 };
@@ -214,7 +180,6 @@ type GitHubUrlAPI = {
 export const gitHubUrl: GitHubUrlAPI = {
     buildPath,
     parse,
-    parseResult,
     build,
 };
 

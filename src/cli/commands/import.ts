@@ -26,7 +26,7 @@ export const importCommand = async (args: string[]): Promise<Result<GitHubIssueN
         );
     }
 
-    const parseResult = gitHubUrl.parseResult(url);
+    const parseResult = gitHubUrl.parse(url);
     if (parseResult.isErr()) {
         return err({
             type: "invalid_url",
