@@ -26,7 +26,10 @@ export type Issue = {
   state: "open" | "closed";
   /** The issue body/description (can be null for issues without content) */
   body: string | null;
+  /** ISO 8601 timestamp of when the issue was created */
   created_at: string;
+  /** Array of labels attached to the issue */
   labels: Array<{ name: string }>;
+  /** Array of users assigned to the issue */
   assignees: Array<{ login: string }>;
 };

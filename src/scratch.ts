@@ -1,5 +1,5 @@
-import { GitHubClient } from "./clients/GitHubClient";
 import { match } from "ts-pattern";
+import { GitHubClient } from "./clients/GitHubClient";
 
 const client = new GitHubClient();
 
@@ -33,7 +33,7 @@ client
   // instead of a generic error object, you get a GitHubClientError
   .mapErr((error) => {
     // Use ts-pattern to handle different error types exhaustively
-    const errorMessage = match(error)
+    const _errorMessage = match(error)
       .with(
         { type: "not_found" },
         (e) => `Issue #${e.issueNumber} not found in ${e.owner}/${e.repo}`,

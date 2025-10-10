@@ -1,4 +1,5 @@
-import { Result, ok, err, Ok, Err } from "neverthrow";
+import type { Result } from "neverthrow";
+import { err, ok } from "neverthrow";
 import type { TransformError } from "../ir/errors";
 
 export const validateIssueState = (

@@ -17,7 +17,7 @@ export type CliError =
  * Formats a GitHubUrlParseError into a human-readable message.
  * Extracts the specific validation failure and relevant context.
  */
-const formatGitHubUrlParseError = (error: GitHubUrlParseError): string => {
+const _formatGitHubUrlParseError = (error: GitHubUrlParseError): string => {
   switch (error.type) {
     case "invalid_protocol":
       return `HTTPS is required for GitHub URLs (got ${error.protocol})`;
@@ -52,7 +52,7 @@ export const formatCliError = (error: CliError): string => {
       return `Resource not found: ${error.target}\n  URL: ${error.url}`;
     case "missing_argument":
       return `Missing required argument for ${error.command}\n  Expected: ${error.expected}`;
-      case "invalid_data":
-          return `Invalid data received: ${error.message}`;
+    case "invalid_data":
+      return `Invalid data received: ${error.message}`;
   }
 };

@@ -1,5 +1,6 @@
+import type { Result } from "neverthrow";
+import { err, ok } from "neverthrow";
 import type { GitHubTarget, IssueTarget, RepoTarget } from "types";
-import { Result, ok, err } from "neverthrow";
 import {
   isNonZeroDigitString,
   isValidOwnerName,
@@ -166,9 +167,11 @@ type GitHubUrlAPI = {
  * ```typescript
  * import { gitHubUrl } from 'neocortex-github';
  *
- * // Parse a URL
- * const target = gitHubUrl.parse("https://github.com/octocat/hello-world/issues/42");
- * console.log(target); // { kind: "issue", owner: "octocat", repo: "hello-world", number: 42 }
+ * // Parse a URL (returns a Result)
+ * const result = gitHubUrl.parse("https://github.com/octocat/hello-world/issues/42");
+ * if (result.isOk()) {
+ *   console.log(result.value); // { kind: "issue", owner: "octocat", repo: "hello-world", number: 42 }
+ * }
  *
  * // Build a URL
  * const url = gitHubUrl.build({ kind: "repo", owner: "octocat", repo: "hello-world" });

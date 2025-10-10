@@ -1,9 +1,10 @@
-import { Result, ok, err } from "neverthrow";
+import type { Result } from "neverthrow";
+import { err, ok } from "neverthrow";
 
 export const parsePositiveInteger = (input: string): Result<number, string> => {
   const num = parseInt(input, 10);
 
-  if (isNaN(num)) {
+  if (Number.isNaN(num)) {
     return err("Not a valid number");
   }
 

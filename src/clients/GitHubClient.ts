@@ -1,11 +1,59 @@
-import { ResultAsync, ok, err } from "neverthrow";
+import { ResultAsync } from "neverthrow";
 import type { Issue } from "types";
-import { HTTP_STATUS } from "../shared/HttpStatusCodes";
 import type { GitHubClientError } from "../errors";
+import { HTTP_STATUS } from "../shared/HttpStatusCodes";
 
+/**
+ * Client for interacting with the GitHub REST API.
+ *
+ * Handles authentication, error handling, and response parsing.
+ * All methods return Results for type-safe error handling.
+ *
+ * @example
+ * ```typescript
+ * const client = new GitHubClient(process.env.GITHUB_TOKEN);
+ * const result = await client.getIssue("microsoft", "typescript", 12345);
+ *
+ * if (result.isOk()) {
+ *   console.log("Issue:", result.value.title);
+ * } else {
+ *   console.error("Error:", result.error.type);
+ * }
+ * ```
+ */
 export class GitHubClient {
+  /**
+   * Creates a new GitHub API client.
+   *
+   * @param token - Optional GitHub personal access token for authentication.
+   *                If not provided, requests will be made without authentication,
+   *                which has lower rate limits.
+   */
   constructor(private readonly token?: string) {}
 
+  /**
+   * Fetches a single issue from a GitHub repository.
+   *
+   * Returns a Result containing either the issue data or a detailed error.
+   * The error type provides information about what went wrong (not found,
+   * unauthorized, rate limited, etc.).
+   *
+   * @param owner - The repository owner (username or organization)
+   * @param repo - The repository name
+   * @param issueNumber - The issue number to fetch
+   * @returns A ResultAsync containing either the Issue or a GitHubClientError
+   *
+   * @example
+   * ```typescript
+   * const client = new GitHubClient(token);
+   * const result = await client.getIssue("facebook", "react", 27769);
+   *
+   * result.match(
+   *   (issue) => console.log(`${issue.title} is ${issue.state}`),
+   *   (error) => console.error(`Failed: ${error.type}`)
+   * );
+   * ```
+   */
   getIssue(
     owner: string,
     repo: string,
@@ -19,7 +67,7 @@ export class GitHubClient {
     };
 
     if (this.token) {
-      headers["Authorization"] = `Bearer ${this.token}`;
+      headers.Authorization = `Bearer ${this.token}`;
     }
 
     // Wrap the entire async operation in ResultAsync.fromPromise
@@ -51,7 +99,7 @@ export class GitHubClient {
                 message: "Invalid or missing GitHub token",
               };
 
-            case HTTP_STATUS.FORBIDDEN:
+            case HTTP_STATUS.FORBIDDEN: {
               // Check if this is a rate limit error
               const retryAfter = response.headers.get("retry-after");
               throw {
@@ -59,6 +107,7 @@ export class GitHubClient {
                 retryAfter: retryAfter ? parseInt(retryAfter, 10) : undefined,
                 url,
               };
+            }
 
             default:
               // Any other non-ok status becomes a server_error
