@@ -32,20 +32,17 @@
  * ```
  */
 export class InternalError extends Error {
-    public readonly timestamp: Date;
-    public readonly context: Record<string, unknown>;
+  public readonly timestamp: Date;
+  public readonly context: Record<string, unknown>;
 
-    constructor(
-        message: string,
-        context: Record<string, unknown> = {}
-    ) {
-        super(`[INTERNAL] ${message}`);
-        this.name = 'InternalError';
-        this.timestamp = new Date();
-        this.context = context;
+  constructor(message: string, context: Record<string, unknown> = {}) {
+    super(`[INTERNAL] ${message}`);
+    this.name = "InternalError";
+    this.timestamp = new Date();
+    this.context = context;
 
-        if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, InternalError);
-        }
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, InternalError);
     }
+  }
 }

@@ -1,18 +1,23 @@
+import { Result, ok, err, Ok, Err } from "neverthrow";
+import type { TransformError } from "../ir/errors";
+
 export const validateIssueState = (
-    state: string, context?: {
-        owner: string,
-        repo: string,
-        number: number
-    }): "open" | "closed" => {
-    if (state === "open" || state === "closed") {
-        return state;
-    }
+  state: string,
+  context: {
+    owner: string;
+    repo: string;
+    number: number;
+  },
+): Result<"open" | "closed", TransformError> => {
+  if (state === "open" || state === "closed") {
+    return ok(state);
+  }
 
-    const contextMessage = context
-        ? ` for ${context.owner}/${context.repo}#${context.number}`
-        : "";
-
-    throw new Error(
-        `Invalid issue state: '${state}'${contextMessage}. Expected 'open' or 'closed'.`
-    );
-}
+  return err({
+    type: "invalid_issue_state",
+    state,
+    owner: context.owner,
+    repo: context.repo,
+    number: context.number,
+  });
+};

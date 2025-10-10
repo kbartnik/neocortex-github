@@ -79,7 +79,8 @@ describe('importCommand', () => {
                 body: "This is the issue body content",
                 labels: [{ name: "bug"}, {name: "enhancement" }],
                 assignees: [{ login: "dev1" }, { login: "dev2" }],
-                created_at: "2025-01-15T12:00:00Z"
+                created_at: "2025-01-15T12:00:00Z",
+                id: 999888777
             };
 
             // The key change: wrap the issue in ok() to create a ResultAsync

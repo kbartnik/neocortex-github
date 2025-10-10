@@ -27,6 +27,6 @@ export type Issue = {
   /** The issue body/description (can be null for issues without content) */
   body: string | null;
   created_at: string;
-  labels: Array<{ name: string}>;
+  labels: Array<{ name: string }>;
   assignees: Array<{ login: string }>;
 };
