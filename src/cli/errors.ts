@@ -1,4 +1,4 @@
-import type { GitHubUrlParseError } from "../gitHubUrl";
+import type { GitHubUrlParseError } from "../github/parsing/gitHubUrl";
 
 /**
  * Errors that can occur during CLI operations.

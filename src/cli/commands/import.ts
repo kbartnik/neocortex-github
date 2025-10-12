@@ -5,7 +5,7 @@ import type { IssueTarget } from "types";
 import { GitHubClient } from "../../github/client/GitHubClient";
 import type { GitHubClientError } from "../../errors";
 import { InternalError } from "../../errors";
-import { gitHubUrl } from "../../gitHubUrl";
+import { gitHubUrl } from "../../github/parsing/gitHubUrl";
 import type { TransformError } from "../../ir/errors";
 import { transformGitHubIssue } from "../../ir/transforms";
 import type { GitHubIssueNode } from "../../ir/types";

@@ -1,7 +1,7 @@
 export { GitHubClient } from "./github/client/GitHubClient";
-export type { GitHubUrlAPI } from "./gitHubUrl.js";
-export { gitHubUrl } from "./gitHubUrl.js";
-export { isIssueTarget, isRepoTarget } from "./types/GitHubTarget.js";
+export type { GitHubUrlAPI } from "./github/parsing/gitHubUrl";
+export { gitHubUrl } from "./github/parsing/gitHubUrl";
+export { isIssueTarget, isRepoTarget } from "./types/GitHubTarget";
 export type {
   GitHubTarget,
   Issue,

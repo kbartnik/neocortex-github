@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { GitHubClient } from "./clients/GitHubClient";
+import { GitHubClient } from "./github/client/GitHubClient";
 
 const client = new GitHubClient();
 

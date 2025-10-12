@@ -1,7 +1,7 @@
 import type { Result } from "neverthrow";
 import type { Issue } from "types";
 import { uuidv7 } from "uuidv7";
-import { validateIssueState } from "../shared/gitHubValidation";
+import { validateIssueState } from "../github/parsing/validation";
 import type { TransformError } from "./errors";
 import type { GitHubIssueNode } from "./types";
 
