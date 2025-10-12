@@ -2,7 +2,7 @@ import type { Result } from "neverthrow";
 import { err } from "neverthrow";
 import { match } from "ts-pattern";
 import type { IssueTarget } from "types";
-import { GitHubClient } from "../../clients/GitHubClient";
+import { GitHubClient } from "../../github/client/GitHubClient";
 import type { GitHubClientError } from "../../errors";
 import { InternalError } from "../../errors";
 import { gitHubUrl } from "../../gitHubUrl";
