@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { gitHubUrl } from "../src/github/parsing/gitHubUrl";
-import type { GitHubTarget } from "../src/types";
+import type { GitHubTarget } from "../src/github/types/GitHubTarget";
 import * as url from "node:url";
 
 describe("gitHubUrl module", () => {

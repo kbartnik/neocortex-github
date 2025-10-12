@@ -1,6 +1,6 @@
 import type { Result } from "neverthrow";
 import { err, ok } from "neverthrow";
-import type { GitHubTarget, IssueTarget, RepoTarget } from "types";
+import type { GitHubTarget, IssueTarget, RepoTarget } from "../types/GitHubTarget";
 import {
   isNonZeroDigitString,
   isValidOwnerName,

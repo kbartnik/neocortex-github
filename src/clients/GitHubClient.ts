@@ -1,5 +1,5 @@
 import { ResultAsync } from "neverthrow";
-import type { Issue } from "types";
+import type { Issue } from "../../types/Issue";
 import type { GitHubClientError } from "../errors";
 import { HTTP_STATUS } from "../shared/HttpStatusCodes";
 
@@ -29,7 +29,7 @@ export class GitHubClient {
    *                If not provided, requests will be made without authentication,
    *                which has lower rate limits.
    */
-  constructor(private readonly token?: string) {}
+  constructor(private readonly token?: string) { }
 
   /**
    * Fetches a single issue from a GitHub repository.
