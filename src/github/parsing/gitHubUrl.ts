@@ -5,7 +5,7 @@ import {
   isNonZeroDigitString,
   isValidOwnerName,
   isValidRepoName,
-} from "../../shared/validation";
+} from "../../core/validation";
 
 export type GitHubUrlParseError =
   | { type: "invalid_protocol"; protocol: string }

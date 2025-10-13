@@ -1,4 +1,4 @@
-import { isValidOwnerName, isValidRepoName } from "../../shared/validation";
+import { isValidOwnerName, isValidRepoName } from "../../core/validation";
 import type { IssueTarget } from "./IssueTarget";
 import type { RepoTarget } from "./RepoTarget";
 

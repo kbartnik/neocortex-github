@@ -1,7 +1,7 @@
 import { ResultAsync } from "neverthrow";
 import type { Issue } from "types";
 import type { GitHubClientError } from "../errors/GitHubClientError";
-import { HTTP_STATUS } from "../../shared/HttpStatusCodes";
+import { HTTP_STATUS } from "../../core/HttpStatusCodes";
 
 /**
  * Client for interacting with the GitHub REST API.
