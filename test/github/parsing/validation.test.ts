@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateIssueState } from '../../src/github/parsing/validation';
+import { validateIssueState } from '../../../src/github/parsing/validation';
 
 describe("validateIssueState (Result-returning)", () => {
 

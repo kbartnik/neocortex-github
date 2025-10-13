@@ -3,7 +3,7 @@ import {
   isNonZeroDigitString,
   isValidOwnerName,
   isValidRepoName,
-} from "./validation";
+} from "../../src/core/validation";
 
 describe("validation module", () => {
   describe("isNonZeroDigitsString", () => {

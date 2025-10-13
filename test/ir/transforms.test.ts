@@ -1,6 +1,6 @@
 // test/IRNode.test.ts (new file)
 import { describe, expect, it } from "vitest";
-import {transformGitHubIssue} from "../src/ir/transforms";
+import {transformGitHubIssue} from "../../src/ir/transforms";
 // We'll need these imports once we create them:
 // import { transformGitHubIssue } from "../src/ir/transform";
 // import type { IRNode, GitHubIssueData } from "../src/ir/types";

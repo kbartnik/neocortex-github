@@ -2,7 +2,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import { GitHubClient } from '../../src';
+import { GitHubClient } from '../../../src';
 
 describe('GitHubClient', () => {
     let fetchMock: ReturnType<typeof vi.fn>;

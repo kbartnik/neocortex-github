@@ -1,5 +1,5 @@
 import { ResultAsync } from "neverthrow";
-import type { Issue } from "types";
+import type { Issue } from "../types/Issue";
 import type { GitHubClientError } from "../errors/GitHubClientError";
 import { HTTP_STATUS } from "../../core/HttpStatusCodes";
 

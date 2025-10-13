@@ -1,7 +1,7 @@
 import type { Result } from "neverthrow";
 import { err } from "neverthrow";
 import { match } from "ts-pattern";
-import type { IssueTarget } from "types";
+import type { IssueTarget } from "../../github/types/IssueTarget";
 import { GitHubClient } from "../../github/client/GitHubClient";
 import type { GitHubClientError } from "../../errors";
 import { InternalError } from "../../errors";
