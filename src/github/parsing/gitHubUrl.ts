@@ -5,11 +5,9 @@ import {
   isValidOwnerName,
   isValidRepoName,
 } from "../../core/validation";
-import type {
-  GitHubTarget,
-  IssueTarget,
-  RepoTarget,
-} from "../types/GitHubTarget";
+import type { GitHubTarget } from "../types/GitHubTarget";
+import type { IssueTarget } from "../types/IssueTarget";
+import type { RepoTarget } from "../types/RepoTarget";
 
 export type GitHubUrlParseError =
   | { type: "invalid_protocol"; protocol: string }

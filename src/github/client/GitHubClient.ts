@@ -130,8 +130,7 @@ export class GitHubClient {
 
         // Try to parse the JSON response
         // If this throws, it gets caught by fromPromise
-        const issue = await response.json();
-        return issue;
+        return await response.json();
       })(),
 
       // Error mapper function: converts thrown errors to GitHubClientError

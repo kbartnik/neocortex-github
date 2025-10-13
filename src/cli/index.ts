@@ -1,19 +1,32 @@
+import { Command } from "commander";
+import type { GitHubIssueNode } from "../ir/types";
 import { importCommand } from "./commands/import";
 
-export async function runCLI(args: string[]): Promise<void> {
-  const [command, url] = args;
+const program: Command = new Command();
 
-  if (command === "import" && url) {
+program
+  .name("neocortex")
+  .description("Cognitive prosthetic for ADHD developers")
+  .version("0.1.0");
+
+program
+  .command("import")
+  .description("Import GitHub issues to intermediate representation")
+  .argument("<url>", "GitHub repository or issue URL")
+  .action(async (url: string) => {
     const result = await importCommand([url]);
 
     result.match(
-      (nodes) => {
-        console.log(`✓ Imported ${nodes.length} issue(s)`)
+      (node: GitHubIssueNode) => {
+        console.log(`✓ Imported 1 issue`);
+        console.log(`  - ${node.title}`);
         process.exit(0);
       },
-      () => {
+      (error) => {
+        console.error("✗ Import failed:", error);
         process.exit(1);
-      }
+      },
     );
-  }
-}
+  });
+
+program.parse();

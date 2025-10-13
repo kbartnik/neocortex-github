@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { Result } from 'neverthrow';
 import { parsePositiveInteger } from '../../../src/github/parsing/utils';
 
 describe("Result pattern basics", () => {
