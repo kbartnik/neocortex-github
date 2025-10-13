@@ -1,7 +1,7 @@
 import type { Result } from "neverthrow";
 import { err } from "neverthrow";
 import { match } from "ts-pattern";
-import type { GitHubClientError } from "../../errors";
+import type { GitHubClientError } from "../../github/errors/GitHubClientError";
 import { InternalError } from "../../errors";
 import { GitHubClient } from "../../github/client/GitHubClient";
 import { gitHubUrl } from "../../github/parsing/gitHubUrl";
