@@ -1,11 +1,11 @@
 import type { Result } from "neverthrow";
 import { err } from "neverthrow";
 import { match } from "ts-pattern";
-import type { IssueTarget } from "../../github/types/IssueTarget";
-import { GitHubClient } from "../../github/client/GitHubClient";
 import type { GitHubClientError } from "../../errors";
 import { InternalError } from "../../errors";
+import { GitHubClient } from "../../github/client/GitHubClient";
 import { gitHubUrl } from "../../github/parsing/gitHubUrl";
+import type { IssueTarget } from "../../github/types/IssueTarget";
 import type { TransformError } from "../../ir/errors";
 import { transformGitHubIssue } from "../../ir/transforms";
 import type { GitHubIssueNode } from "../../ir/types";

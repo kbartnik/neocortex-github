@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ok } from 'neverthrow';
 import * as importModule from '../../src/cli/commands/import';
 
@@ -8,8 +8,15 @@ vi.mock('../../src/cli/commands/import', () => ({
 }));
 
 describe('CLI entry point', () => {
+  let mockExit: any;
+
   beforeEach(() => {
     vi.resetAllMocks();
+    mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }) as any);
+  });
+
+  afterEach(() => {
+    mockExit.mockRestore();
   });
 
   it('should parse import command and call importCommand with URL', async () => {
@@ -22,5 +29,26 @@ describe('CLI entry point', () => {
 
     // importCommand receives the arguments after 'import' as an array
     expect(importModule.importCommand).toHaveBeenCalledWith(['https://github.com/owner/repo']);
+  });
+
+  it('should exit with code 0 on successful import', async () => {
+    // Setup mock to return successful result with one node
+    vi.mocked(importModule.importCommand).mockResolvedValue(ok({
+      id: '123',
+      type: 'github-issue',
+      sourceId: 'github:owner/repo#1',
+      title: 'Test Issue',
+      data: { number: 1, body: 'test', state: 'open', labels: [], assignees: [] },
+      created_at: '2025-01-01T00:00:00Z'
+    }));
+
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }) as any);
+
+    const { runCLI } = await import('../../src/cli/index');
+    await runCLI(['import', 'https://github.com/owner/repo']);
+
+    expect(mockExit).toHaveBeenCalledWith(0);
+
+    mockExit.mockRestore();
   });
 });

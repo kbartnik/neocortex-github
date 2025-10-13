@@ -1,11 +1,15 @@
 import type { Result } from "neverthrow";
 import { err, ok } from "neverthrow";
-import type { GitHubTarget, IssueTarget, RepoTarget } from "../types/GitHubTarget";
 import {
   isNonZeroDigitString,
   isValidOwnerName,
   isValidRepoName,
 } from "../../core/validation";
+import type {
+  GitHubTarget,
+  IssueTarget,
+  RepoTarget,
+} from "../types/GitHubTarget";
 
 export type GitHubUrlParseError =
   | { type: "invalid_protocol"; protocol: string }
