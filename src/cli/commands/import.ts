@@ -1,14 +1,14 @@
+import { GitHubClient } from "@domains/github/client";
+import type { GitHubClientError } from "@domains/github/errors";
+import { gitHubUrl } from "@domains/github/parser";
+import type { IssueTarget } from "@domains/github/types";
+import { InternalError } from "@errors/InternalError";
+import type { TransformError } from "@ir/errors";
+import { transformGitHubIssue } from "@ir/transforms";
+import type { GitHubIssueNode } from "@ir/types";
 import type { Result } from "neverthrow";
 import { err } from "neverthrow";
 import { match } from "ts-pattern";
-import { InternalError } from "../../errors";
-import { GitHubClient } from "../../github/client/GitHubClient";
-import type { GitHubClientError } from "../../github/errors/GitHubClientError";
-import { gitHubUrl } from "../../github/parsing/gitHubUrl";
-import type { IssueTarget } from "../../github/types/IssueTarget";
-import type { TransformError } from "../../ir/errors";
-import { transformGitHubIssue } from "../../ir/transforms";
-import type { GitHubIssueNode } from "../../ir/types";
 import type { CliError } from "../errors";
 
 /**

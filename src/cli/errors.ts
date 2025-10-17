@@ -1,4 +1,4 @@
-import type { GitHubUrlParseError } from "../github/parsing/gitHubUrl";
+import type { GitHubUrlParseError } from "@domains/github/parser";
 
 /**
  * Errors that can occur during CLI operations.
@@ -12,29 +12,6 @@ export type CliError =
   | { type: "not_found"; target: string; url: string }
   | { type: "missing_argument"; command: string; expected: string }
   | { type: "invalid_data"; message: string; details: unknown };
-
-/**
- * Formats a GitHubUrlParseError into a human-readable message.
- * Extracts the specific validation failure and relevant context.
- */
-const _formatGitHubUrlParseError = (error: GitHubUrlParseError): string => {
-  switch (error.type) {
-    case "invalid_protocol":
-      return `HTTPS is required for GitHub URLs (got ${error.protocol})`;
-    case "invalid_hostname":
-      return `Expected github.com but got ${error.hostname}`;
-    case "missing_path_segments":
-      return `URL must include /owner/repo path`;
-    case "invalid_repo_name":
-      return `Invalid repository name: "${error.repo}" (must be 1-100 chars using letters, digits, underscore, dot, or hyphen)`;
-    case "invalid_owner_name":
-      return `Invalid owner name: "${error.owner}" (must be 1-39 alphanumeric chars, may contain hyphens, cannot start or end with hyphen)`;
-    case "invalid_issue_number":
-      return `Invalid issue number: "${error.value}" (must be a positive integer)`;
-    case "invalid_url":
-      return `Malformed URL: ${error.message}`;
-  }
-};
 
 /**
  * Formats a CLI error for display to the user.

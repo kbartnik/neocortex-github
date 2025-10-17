@@ -1,7 +1,7 @@
+import { HTTP_STATUS } from "@core/HttpStatusCodes";
 import { ResultAsync } from "neverthrow";
-import { HTTP_STATUS } from "../../core/HttpStatusCodes";
-import type { GitHubClientError } from "../errors/GitHubClientError";
-import type { Issue } from "../types/Issue";
+import type { GitHubClientError } from "./errors";
+import type { Issue } from "./types";
 
 /**
  * Client for interacting with the GitHub REST API.
@@ -97,6 +97,7 @@ export class GitHubClient {
               throw {
                 type: "unauthorized" as const,
                 message: "Invalid or missing GitHub token",
+                url,
               };
 
             case HTTP_STATUS.FORBIDDEN: {
@@ -104,7 +105,9 @@ export class GitHubClient {
               const retryAfter = response.headers.get("retry-after");
               throw {
                 type: "rate_limited" as const,
-                retryAfter: retryAfter ? parseInt(retryAfter, 10) : undefined,
+                retryAfter: retryAfter
+                  ? Number.parseInt(retryAfter, 10)
+                  : undefined,
                 url,
               };
             }

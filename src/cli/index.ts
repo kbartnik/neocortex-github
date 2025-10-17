@@ -1,5 +1,5 @@
+import type { GitHubIssueNode } from "@ir/types";
 import { Command } from "commander";
-import type { GitHubIssueNode } from "../ir/types";
 import { importCommand } from "./commands/import";
 
 const program: Command = new Command();

@@ -1,7 +1,7 @@
+import { validateIssueState } from "@domains/github/parser";
+import type { Issue } from "@domains/github/types";
 import type { Result } from "neverthrow";
 import { uuidv7 } from "uuidv7";
-import { validateIssueState } from "../github/parsing/validation";
-import type { Issue } from "../github/types/Issue";
 import type { TransformError } from "./errors";
 import type { GitHubIssueNode } from "./types";
 

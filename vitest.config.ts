@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import { resolve } from "node:path";
 
 export default defineConfig({
   test: {
@@ -19,5 +20,13 @@ export default defineConfig({
           ],
       },
     watch: false,
+  },
+  resolve: {
+    alias: {
+      "@domains": resolve(__dirname, "./src/domains"),
+      "@ir": resolve(__dirname, "./src/ir"),
+      "@core": resolve(__dirname, "./src/core"),
+      "@errors": resolve(__dirname, "./src/errors"),
+    },
   },
 });

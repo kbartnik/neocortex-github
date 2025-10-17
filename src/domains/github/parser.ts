@@ -1,13 +1,59 @@
-import type { Result } from "neverthrow";
-import { err, ok } from "neverthrow";
 import {
   isNonZeroDigitString,
   isValidOwnerName,
   isValidRepoName,
-} from "../../core/validation";
-import type { GitHubTarget } from "../types/GitHubTarget";
-import type { IssueTarget } from "../types/IssueTarget";
-import type { RepoTarget } from "../types/RepoTarget";
+} from "@core/validation";
+import type { TransformError } from "@ir/errors";
+import type { Result } from "neverthrow";
+import { err, ok } from "neverthrow";
+import type { GitHubTarget, IssueTarget, RepoTarget } from "./types";
+
+// ============================================================================
+// Utilities
+// ============================================================================
+
+export const parsePositiveInteger = (input: string): Result<number, string> => {
+  const num = Number.parseInt(input, 10);
+
+  if (Number.isNaN(num)) {
+    return err("Not a valid number");
+  }
+
+  if (num < 0) {
+    return err("Must be positive");
+  }
+
+  return ok(num);
+};
+
+// ============================================================================
+// Validation
+// ============================================================================
+
+export const validateIssueState = (
+  state: string,
+  context: {
+    owner: string;
+    repo: string;
+    number: number;
+  },
+): Result<"open" | "closed", TransformError> => {
+  if (state === "open" || state === "closed") {
+    return ok(state);
+  }
+
+  return err({
+    type: "invalid_issue_state",
+    state,
+    owner: context.owner,
+    repo: context.repo,
+    number: context.number,
+  });
+};
+
+// ============================================================================
+// GitHub URL Parsing
+// ============================================================================
 
 export type GitHubUrlParseError =
   | { type: "invalid_protocol"; protocol: string }
@@ -150,7 +196,7 @@ const build = (
 /**
  * Type definition for the GitHub URL API.
  */
-type GitHubUrlAPI = {
+export type GitHubUrlAPI = {
   /** Generates the path portion of a GitHub URL from a target object */
   buildPath: (target: GitHubTarget) => string;
   /** Parses a GitHub URL string into a typed target object */
@@ -189,5 +235,3 @@ export const gitHubUrl: GitHubUrlAPI = {
   parse,
   build,
 };
-
-export type { GitHubUrlAPI };

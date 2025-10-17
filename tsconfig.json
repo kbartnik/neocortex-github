@@ -33,12 +33,10 @@
     ],
     "baseUrl": "./src",
     "paths": {
-      "types": [
-        "types/index.ts",
-      ],
-      "types/*": [
-        "types/*"
-      ]
+      "@domains/*": ["domains/*"],
+      "@ir/*": ["ir/*"],
+      "@core/*": ["core/*"],
+      "@errors/*": ["errors/*"]
     }
   },
   "include": [
