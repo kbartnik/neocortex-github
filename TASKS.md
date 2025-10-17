@@ -98,22 +98,171 @@ This document tracks current development priorities and phase checklists. For ar
 
 ---
 
-## Phase 1: Apply Immutability
+## Phase 1: Immutability with Build-Time Code Generation
 
-**Goal:** Implement immutability patterns with Immer throughout GitHub domain.
+**Goal:** Implement immutability patterns and build TypeScript transformer infrastructure for automatic fluent builder generation.
 
-**Status:** Not Started
+**Status:** In Progress (Branch: `ts-transformer-builder`)
 
 **Prerequisites:** Phase 0 complete
 
-### Tasks
+**Scope Expansion Note:** This phase evolved from simple immutability application to include sophisticated build-time code generation. The educational value of building TypeScript transformers and the long-term benefits of automated builder generation justify the expanded scope.
 
-- [ ] Mark all fields in `types.ts` as `readonly`
-- [ ] Update parser functions to use Immer's `produce` for any transformations
+### Phase 1A: Foundation - Manual Immutability
+
+**Educational Focus:** Understanding immutability patterns and Immer integration.
+
+**Goal:** Establish immutable types and basic patterns before building generation infrastructure.
+
+**Status:** Not Started
+
+#### Tasks
+
+- [ ] Mark all fields in GitHub domain `types.ts` as `readonly`
+- [ ] Add TypeScript immutability tests (compile-time errors for mutation attempts)
+- [ ] Add runtime immutability validation tests
+- [ ] Update parser functions to use Immer's `produce` for transformations
 - [ ] Update client to work with immutable types
 - [ ] Update IR transforms to work with immutable inputs
-- [ ] Add immutability tests (attempt to mutate should cause TypeScript error)
-- [ ] Add runtime immutability checks in tests
+- [ ] Verify all existing tests pass with immutable types
+
+#### Success Criteria
+
+- All GitHub domain types use `readonly` modifiers
+- Tests verify both compile-time and runtime immutability
+- Immer patterns established for data transformations
+- No breaking changes to existing functionality
+
+### Phase 1B: Transformer Infrastructure
+
+**Educational Focus:** TypeScript compilation pipeline, AST manipulation, build integration.
+
+**Goal:** Build foundational infrastructure for TypeScript transformers with minimal viable functionality.
+
+**Status:** Not Started
+
+**Prerequisites:** Phase 1A complete
+
+#### Learning Objectives
+
+- Understand TypeScript Abstract Syntax Trees (AST)
+- Learn TypeScript transformer API
+- Master build-time code generation integration
+- Explore metaprogramming patterns in TypeScript
+
+#### Tasks
+
+- [ ] Install transformer dependencies (`typescript`, `ts-patch`, dev tools)
+- [ ] Create `build-tools/` directory for transformer infrastructure
+- [ ] Study TypeScript AST structure for type declarations
+- [ ] Write basic transformer that detects type declarations
+- [ ] Create minimal transformer integration in `tsconfig.json`
+- [ ] Build "hello world" transformer that logs detected types
+- [ ] Add transformer to build pipeline (verify it runs during compilation)
+- [ ] Write tests for transformer detection logic
+- [ ] Document transformer architecture in CLAUDE.md
+
+#### Success Criteria
+
+- Transformer successfully integrated with build system
+- Can detect and log domain type declarations during compilation
+- Tests verify transformer detection logic works correctly
+- Build process remains fast and stable
+
+### Phase 1C: Builder Method Generation
+
+**Educational Focus:** Advanced AST manipulation, code generation patterns, fluent API design.
+
+**Goal:** Generate complete fluent builder classes with withX and addX methods.
+
+**Status:** Not Started
+
+**Prerequisites:** Phase 1B complete
+
+#### Learning Objectives
+
+- Master programmatic AST node creation
+- Understand TypeScript's factory patterns
+- Learn fluent API design principles
+- Explore advanced metaprogramming techniques
+
+#### Tasks
+
+- [ ] Design fluent builder API contract (what methods should be generated)
+- [ ] Write tests for expected generated builder behavior (TDD for meta-programming)
+- [ ] Implement property extraction from type literals
+- [ ] Generate basic `withX` methods for simple properties
+- [ ] Generate `addX` methods for array properties
+- [ ] Create builder class constructor and apply() method
+- [ ] Add Immer integration to generated update functions
+- [ ] Handle edge cases (optional properties, readonly arrays, nested objects)
+- [ ] Generate proper TypeScript types for builder methods
+- [ ] Add JSDoc comments to generated methods
+
+#### Success Criteria
+
+- Generated builders provide fluent interface for all domain types
+- All builder methods properly typed and documented
+- Generated code follows Immer immutability patterns
+- TDD tests pass for generated builder functionality
+
+### Phase 1D: Advanced Builder Features
+
+**Educational Focus:** Sophisticated code generation, performance optimization, developer experience.
+
+**Goal:** Add advanced features like validation, nested updates, and performance optimizations.
+
+**Status:** Not Started
+
+**Prerequisites:** Phase 1C complete
+
+#### Learning Objectives
+
+- Optimize generated code for performance
+- Integrate validation with code generation
+- Handle complex nested object scenarios
+- Create sophisticated developer experience features
+
+#### Tasks
+
+- [ ] Add validation integration to generated builders
+- [ ] Implement nested object update support
+- [ ] Add method chaining optimizations
+- [ ] Generate builder types that prevent invalid method combinations
+- [ ] Add debugging support for generated builders
+- [ ] Create documentation generation for builders
+- [ ] Add IDE integration hints (IntelliSense improvements)
+- [ ] Performance benchmark generated vs manual builders
+- [ ] Add configuration options for transformer behavior
+- [ ] Create migration guide for manual to generated builders
+
+#### Success Criteria
+
+- Generated builders match or exceed performance of manual implementations
+- Validation seamlessly integrated with fluent interface
+- Excellent developer experience with IntelliSense and debugging
+- Comprehensive documentation for generated APIs
+
+### Phase 1 Integration & Documentation
+
+#### Final Phase 1 Tasks
+
+- [ ] Update CLAUDE.md with transformer patterns and guidelines
+- [ ] Create transformer troubleshooting guide
+- [ ] Document performance characteristics and trade-offs
+- [ ] Add contribution guidelines for extending transformers
+- [ ] Verify all GitHub domain code uses generated builders
+- [ ] Remove any manual builder implementations
+- [ ] Create examples demonstrating fluent builder usage
+- [ ] Benchmark build time impact of code generation
+
+#### Success Criteria for Complete Phase 1
+
+- All GitHub domain types have automatically generated fluent builders
+- Build-time code generation integrated seamlessly with development workflow
+- Generated code is type-safe, performant, and well-documented
+- Developer experience significantly improved through zero-decision fluent APIs
+- Foundation established for applying patterns to future domains
 
 ---
 

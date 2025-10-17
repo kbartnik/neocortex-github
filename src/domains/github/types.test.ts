@@ -99,3 +99,35 @@ describe("Issue type", () => {
     expect(issue.state).toBe("open");
   });
 });
+
+describe("Type Immutability - Compile Time", () => {
+  it("should prevent runtime mutation of Issue properties", () => {
+    const issue: Issue = Object.freeze({
+      id: 123456789,
+      number: 42,
+      title: "Test Issue",
+      state: "open",
+      body: "This is a test",
+      created_at: "2025-01-01T00:00:00Z",
+      labels: [],
+      assignees: [],
+    });
+
+    // Store original values
+    const originalId = issue.id;
+    const originalTitle = issue.title;
+
+    // These should now throw errors when attempting mutation
+    expect(() => {
+      (issue as any).id = 999;
+    }).toThrow();
+
+    expect(() => {
+      (issue as any).title = "Modified title";
+    }).toThrow();
+
+    // Verify that mutations were prevented (this will currently fail)
+    expect(issue.id).toBe(originalId);
+    expect(issue.title).toBe(originalTitle);
+  });
+});

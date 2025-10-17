@@ -19,21 +19,21 @@ import { isValidOwnerName, isValidRepoName } from "@core/validation";
  */
 export type Issue = {
   /** Unique identifier for the issue (GitHub's internal ID) */
-  id: number;
+  readonly id: number;
   /** Issue number within the repository (user-visible number) */
-  number: number;
+  readonly number: number;
   /** The issue title */
-  title: string;
+  readonly title: string;
   /** Current state of the issue */
-  state: "open" | "closed";
+  readonly state: "open" | "closed";
   /** The issue body/description (can be null for issues without content) */
-  body: string | null;
+  readonly body: string | null;
   /** ISO 8601 timestamp of when the issue was created */
-  created_at: string;
+  readonly created_at: string;
   /** Array of labels attached to the issue */
-  labels: Array<{ name: string }>;
+  readonly labels: ReadonlyArray<{ readonly name: string }>;
   /** Array of users assigned to the issue */
-  assignees: Array<{ login: string }>;
+  assignees: ReadonlyArray<{ readonly login: string }>;
 };
 
 /**
