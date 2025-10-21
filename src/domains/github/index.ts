@@ -11,12 +11,16 @@ export { GitHubClient } from "./client";
 export type { GitHubClientError } from "./errors";
 
 // Parser/URL utilities
-export type { GitHubUrlAPI, GitHubUrlParseError } from "./parser";
-export { gitHubUrl, parsePositiveInteger, validateIssueState } from "./parser";
+export type {
+  GitHubUrlAPI,
+  GitHubUrlParseError,
+} from "./parser";
+export { gitHubUrl, parseGitHubIssue, validateIssueState } from "./parser";
 // Types
 export type {
+  GitHubIssue,
+  GitHubParseError,
   GitHubTarget,
-  Issue,
   IssueTarget,
   RepoTarget,
 } from "./types";

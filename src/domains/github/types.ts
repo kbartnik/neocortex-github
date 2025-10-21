@@ -1,40 +1,25 @@
+import type { DeepReadonly } from "@core/types";
 import { isValidOwnerName, isValidRepoName } from "@core/validation";
+import type { Result } from "neverthrow";
+import { err, ok } from "neverthrow";
+import { z } from "zod";
 
-/**
- * Represents a GitHub issue as returned by the GitHub API.
+/** GitHub issue data returned by the REST API
  *
- * Contains the essential properties of a GitHub issue including
- * identification, metadata, and content.
+ * This type is inferred from the GitHubIssueSchema and Represents
+ * the mutable shape from the API before applying immutability.
  *
- * @example
- * ```typescript
- * const issue: Issue = {
- *   id: 1234567890,
- *   number: 42,
- *   title: "Fix TypeScript compilation error",
- *   state: "open",
- *   body: "There is a compilation error in src/index.ts"
- * };
- * ```
+ * @see https://docs.github.com/en/rest/issues/issues#get-an-issue
  */
-export type Issue = {
-  /** Unique identifier for the issue (GitHub's internal ID) */
-  readonly id: number;
-  /** Issue number within the repository (user-visible number) */
-  readonly number: number;
-  /** The issue title */
-  readonly title: string;
-  /** Current state of the issue */
-  readonly state: "open" | "closed";
-  /** The issue body/description (can be null for issues without content) */
-  readonly body: string | null;
-  /** ISO 8601 timestamp of when the issue was created */
-  readonly created_at: string;
-  /** Array of labels attached to the issue */
-  readonly labels: ReadonlyArray<{ readonly name: string }>;
-  /** Array of users assigned to the issue */
-  assignees: ReadonlyArray<{ readonly login: string }>;
-};
+type GitHubIssueData = z.infer<typeof GitHubIssueSchema>;
+
+/** Immutable GitHub issue as used throughout the application
+ *
+ * All properties are deeply readonly. This is the primary type you should use
+ * for GitHub issues. The schema validates the shape and runtime, while DeepReadonly
+ * enforces immutability at compile time.
+ */
+export type GitHubIssue = DeepReadonly<GitHubIssueData>;
 
 /**
  * Represents a GitHub repository target.
@@ -176,4 +161,109 @@ export const isIssueTarget = (t: unknown): t is IssueTarget => {
     Number.isInteger(obj.number) &&
     obj.number > 0
   );
+};
+
+const GitHubUserSchema = z.object({
+  login: z.string(),
+  id: z.number(),
+  node_id: z.string(),
+  avatar_url: z.string(),
+  gravatar_id: z.string(),
+  url: z.string(),
+  html_url: z.string(),
+  type: z.enum(["User", "Bot", "Organization"]),
+  site_admin: z.boolean(),
+});
+
+const GitHubLabelSchema = z.object({
+  id: z.number(),
+  node_id: z.string(),
+  url: z.string(),
+  name: z.string(),
+  color: z.string(),
+  default: z.boolean(),
+  description: z.string().nullable(),
+});
+
+const GitHubReactionsSchema = z.object({
+  url: z.string(),
+  total_count: z.number(),
+  "+1": z.number(),
+  "-1": z.number(),
+  laugh: z.number(),
+  hooray: z.number(),
+  confused: z.number(),
+  heart: z.number(),
+  rocket: z.number(),
+  eyes: z.number(),
+});
+
+const GitHubPullRequestRefSchema = z.object({
+  url: z.string(),
+  html_url: z.string(),
+  diff_url: z.string(),
+  patch_url: z.string(),
+});
+
+const GitHubMilestoneSchema = z.object({
+  id: z.number(),
+  node_id: z.string(),
+  number: z.number(),
+  title: z.string(),
+  description: z.string().nullable(),
+  creator: GitHubUserSchema,
+  open_issues: z.number(),
+  closed_issues: z.number(),
+  state: z.enum(["open", "closed"]),
+  created_at: z.string(),
+  updated_at: z.string(),
+  due_on: z.string().nullable(),
+  closed_at: z.string().nullable(),
+});
+
+export const GitHubIssueSchema = z.object({
+  id: z.number(),
+  node_id: z.string(),
+  url: z.string(),
+  repository_url: z.string(),
+  labels_url: z.string(),
+  comments_url: z.string(),
+  events_url: z.string(),
+  html_url: z.string(),
+  number: z.number(),
+  state: z.enum(["open", "closed"]),
+  state_reason: z.enum(["completed", "reopened", "not_planned"]).nullable(),
+  title: z.string(),
+  body: z.string().nullable(),
+  user: GitHubUserSchema,
+  labels: z.array(GitHubLabelSchema),
+  assignee: GitHubUserSchema.nullable(),
+  assignees: z.array(GitHubUserSchema),
+  milestone: GitHubMilestoneSchema.nullable(),
+  locked: z.boolean(),
+  active_lock_reason: z.string().nullable(),
+  comments: z.number(),
+  pull_request: GitHubPullRequestRefSchema.optional(),
+  closed_at: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  closed_by: GitHubUserSchema.nullable(),
+  author_association: z.enum([
+    "OWNER",
+    "MEMBER",
+    "CONTRIBUTOR",
+    "COLLABORATOR",
+    "FIRST_TIME_CONTRIBUTOR",
+    "FIRST_TIMER",
+    "NONE",
+  ]),
+  reactions: GitHubReactionsSchema,
+});
+
+export type GitHubParseError = {
+  type: "PARSE_ERROR";
+  issues: Array<{
+    path: PropertyKey[];
+    message: string;
+  }>;
 };

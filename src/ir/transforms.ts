@@ -1,5 +1,5 @@
 import { validateIssueState } from "@domains/github/parser";
-import type { Issue } from "@domains/github/types";
+import type { GitHubIssue } from "@domains/github/types";
 import type { Result } from "neverthrow";
 import { uuidv7 } from "uuidv7";
 import type { TransformError } from "./errors";
@@ -22,7 +22,7 @@ import type { GitHubIssueNode } from "./types";
  *
  * @example
  * ```typescript
- * const apiResponse: Issue = {
+ * const apiResponse: GitHubIssue = {
  *   id: 123456,
  *   number: 42,
  *   title: "Bug in parser",
@@ -41,7 +41,7 @@ import type { GitHubIssueNode } from "./types";
  * ```
  */
 export function transformGitHubIssue(
-  githubApiResponse: Issue,
+  githubApiResponse: GitHubIssue,
   owner: string,
   repo: string,
 ): Result<GitHubIssueNode, TransformError> {

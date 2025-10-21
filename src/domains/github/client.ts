@@ -1,7 +1,7 @@
 import { HTTP_STATUS } from "@core/HttpStatusCodes";
 import { ResultAsync } from "neverthrow";
 import type { GitHubClientError } from "./errors";
-import type { Issue } from "./types";
+import type { GitHubIssue } from "./types";
 
 /**
  * Client for interacting with the GitHub REST API.
@@ -58,7 +58,7 @@ export class GitHubClient {
     owner: string,
     repo: string,
     issueNumber: number,
-  ): ResultAsync<Issue, GitHubClientError> {
+  ): ResultAsync<GitHubIssue, GitHubClientError> {
     const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`;
 
     const headers: Record<string, string> = {
