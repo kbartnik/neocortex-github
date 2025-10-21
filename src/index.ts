@@ -3,6 +3,7 @@ export type { GitHubUrlAPI } from "./domains/github/parser";
 export { gitHubUrl } from "./domains/github/parser";
 export type { GitHubIssue } from "./domains/github/types-issue";
 export type {
+  GitHubIssue,
   GitHubTarget,
   IssueTarget,
   RepoTarget,
