@@ -1,7 +1,7 @@
 import { GitHubClient } from "@domains/github/client";
 import type { GitHubClientError } from "@domains/github/errors";
 import { gitHubUrl } from "@domains/github/parser";
-import type { IssueTarget } from "@domains/github/types";
+import type { IssueTarget } from "@domains/github/types-target";
 import { InternalError } from "@errors/InternalError";
 import type { TransformError } from "@ir/errors";
 import { transformGitHubIssue } from "@ir/transforms";

@@ -107,9 +107,10 @@ export class GitHubClient {
           .with(403, () => {
             // Check for rate limit indicators
             if (OctokitErrorParsers.hasRateLimitHeaders(error)) {
+              const retryAfter = OctokitErrorParsers.extractRetryAfter(error);
               return {
                 type: "rate_limited" as const,
-                retryAfter: OctokitErrorParsers.extractRetryAfter(error),
+                ...(retryAfter !== undefined && { retryAfter }),
                 url,
               };
             }
