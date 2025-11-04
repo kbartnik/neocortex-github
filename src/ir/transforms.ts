@@ -1,5 +1,5 @@
-import { validateIssueState } from "@domains/github/parser";
-import type { GitHubIssue } from "@domains/github/types";
+import type { GitHubIssue } from "@domains/github";
+import { validateIssueState } from "@domains/github";
 import type { Result } from "neverthrow";
 import { uuidv7 } from "uuidv7";
 import type { TransformError } from "./errors";

@@ -1,3 +1,95 @@
+import { z } from "zod";
+
+/**
+ * Zod schemas for validating Octokit error structures.
+ * These allow declarative validation instead of manual type guards.
+ */
+
+/** Schema for extracting request URL from Octokit errors */
+// biome-ignore lint/nursery/useExplicitType: Zod schemas are self-describing
+const OctokitRequestSchema = z.object({
+  url: z.string(),
+});
+
+/** Schema for Octokit HTTP errors with status codes */
+// biome-ignore lint/nursery/useExplicitType: Zod schemas are self-describing
+const OctokitHttpErrorSchema = z.object({
+  status: z.number(),
+  message: z.string().optional(),
+  request: OctokitRequestSchema.optional(),
+});
+
+/** Schema for rate limit headers in Octokit responses */
+// biome-ignore lint/nursery/useExplicitType: Zod schemas are self-describing
+const RateLimitHeadersSchema = z.object({
+  "x-ratelimit-remaining": z.string().optional(),
+  "retry-after": z.string().optional(),
+});
+
+/** Schema for Octokit errors with response headers (used for rate limiting) */
+// biome-ignore lint/nursery/useExplicitType: Zod schemas are self-describing
+const OctokitHttpErrorWithHeadersSchema = OctokitHttpErrorSchema.extend({
+  response: z
+    .object({
+      headers: RateLimitHeadersSchema,
+    })
+    .optional(),
+});
+
+/** Type-safe parsers for Octokit error shapes */
+export const OctokitErrorParsers = {
+  /** Parse as HTTP error with status code */
+  asHttpError: (error: unknown) => OctokitHttpErrorSchema.safeParse(error),
+
+  /** Parse as HTTP error with headers (for rate limit detection) */
+  asHttpErrorWithHeaders: (error: unknown) =>
+    OctokitHttpErrorWithHeadersSchema.safeParse(error),
+
+  /** Extract URL from error request, with fallback */
+  extractUrl: (error: unknown, fallback: string): string => {
+    const result = z.object({ request: OctokitRequestSchema }).safeParse(error);
+    return result.success ? result.data.request.url : fallback;
+  },
+
+  /** Extract retry-after seconds from rate limit headers */
+  extractRetryAfter: (error: unknown): number | undefined => {
+    const result = z
+      .object({ response: z.object({ headers: RateLimitHeadersSchema }) })
+      .safeParse(error);
+
+    if (!result.success) return undefined;
+
+    const headers = result.data.response.headers;
+
+    // Try retry-after header first
+    if (headers["retry-after"]) {
+      const retryAfter = Number.parseInt(headers["retry-after"], 10);
+      if (!Number.isNaN(retryAfter)) return retryAfter;
+    }
+
+    // If x-ratelimit-remaining is 0, we're rate limited (but no retry time given)
+    if (headers["x-ratelimit-remaining"] === "0") {
+      return undefined;
+    }
+
+    return undefined;
+  },
+
+  /** Check if error has rate limit indicators */
+  hasRateLimitHeaders: (error: unknown): boolean => {
+    const result = z
+      .object({ response: z.object({ headers: RateLimitHeadersSchema }) })
+      .safeParse(error);
+
+    if (!result.success) return false;
+
+    const headers = result.data.response.headers;
+    return !!(
+      headers["retry-after"] || headers["x-ratelimit-remaining"] === "0"
+    );
+  },
+} as const;
+
 /**
  * Discriminated union of errors that can occur during GitHub API operations.
  *

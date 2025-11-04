@@ -8,9 +8,12 @@ describe("IR Node Transformation", () => {
       node_id: "MDU6SXNzdWUxMjM0NTY3ODk=",
       url: "https://api.github.com/repos/microsoft/typescript/issues/42",
       repository_url: "https://api.github.com/repos/microsoft/typescript",
-      labels_url: "https://api.github.com/repos/microsoft/typescript/labels{/name}",
-      comments_url: "https://api.github.com/repos/microsoft/typescript/issues/42/comments",
-      events_url: "https://api.github.com/repos/microsoft/typescript/issues/42/events",
+      labels_url:
+        "https://api.github.com/repos/microsoft/typescript/labels{/name}",
+      comments_url:
+        "https://api.github.com/repos/microsoft/typescript/issues/42/comments",
+      events_url:
+        "https://api.github.com/repos/microsoft/typescript/issues/42/events",
       html_url: "https://github.com/microsoft/typescript/issues/42",
       number: 42,
       state: "open" as const,

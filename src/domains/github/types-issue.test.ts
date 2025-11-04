@@ -1,87 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseGitHubIssue } from "./parser";
-import type { GitHubTarget } from "./types";
-import { GitHubIssueSchema, isIssueTarget, isRepoTarget } from "./types";
-
-describe("GitHubTarget type guards", () => {
-  it("should identify repo targets correctly", () => {
-    const repoTarget: GitHubTarget = {
-      kind: "repo",
-      owner: "microsoft",
-      repo: "typescript",
-    };
-
-    const result = isRepoTarget(repoTarget);
-
-    expect(result).toBe(true);
-  });
-
-  it("should reject issue targets as repo targets", () => {
-    const issueTarget: GitHubTarget = {
-      kind: "issue",
-      owner: "microsoft",
-      repo: "typescript",
-      number: 42,
-    };
-
-    const result = isRepoTarget(issueTarget);
-
-    expect(result).toBe(false);
-  });
-
-  it("should identify issue targets correctly", () => {
-    const issueTarget: GitHubTarget = {
-      kind: "issue",
-      owner: "microsoft",
-      repo: "typescript",
-      number: 42,
-    };
-
-    const result = isIssueTarget(issueTarget);
-    expect(result).toBe(true);
-  });
-
-  it("should reject repo targets as issue targets", () => {
-    const repoTarget: GitHubTarget = {
-      kind: "repo",
-      owner: "microsoft",
-      repo: "typescript",
-    };
-
-    const result = isIssueTarget(repoTarget);
-
-    expect(result).toBe(false);
-  });
-
-  it("should reject invalid repo objects", () => {
-    const invalidInput = { kind: "repo" };
-
-    const result = isRepoTarget(invalidInput);
-
-    expect(result).toBe(false);
-  });
-
-  it("should reject invalid issue objects", () => {
-    const invalidInput = { kind: "issue", owner: "microsoft" };
-
-    const result = isIssueTarget(invalidInput);
-
-    expect(result).toBe(false);
-  });
-
-  it("should reject issue with invalid number", () => {
-    const invalidInput = {
-      kind: "issue",
-      owner: "microsoft",
-      repo: "typescript",
-      number: -1,
-    };
-
-    const result = isIssueTarget(invalidInput);
-
-    expect(result).toBe(false);
-  });
-});
+import {
+  GitHubIssueSchema,
+  parseGitHubIssue,
+  validateIssueState,
+} from "./types-issue";
 
 describe("GitHubIssue schema validation", () => {
   const validIssueBase = {
@@ -289,6 +211,72 @@ describe("parseGitHubIssue", () => {
     if (result.isOk()) {
       expect(result.value.number).toBe(1347);
       expect(result.value.title).toBe("Found a bug");
+    }
+  });
+});
+
+describe("validateIssueState", () => {
+  it("should return Ok('open') when state is 'open'", () => {
+    const result = validateIssueState("open", {
+      owner: "facebook",
+      repo: "react",
+      number: 123,
+    });
+
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value).toBe("open");
+    }
+  });
+
+  it("should return Ok('closed') when state is 'closed'", () => {
+    const result = validateIssueState("closed", {
+      owner: "facebook",
+      repo: "react",
+      number: 123,
+    });
+
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value).toBe("closed");
+    }
+  });
+
+  it("should return Err for invalid state without context", () => {
+    const result = validateIssueState("banana", {
+      owner: "facebook",
+      repo: "react",
+      number: 123,
+    });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toEqual({
+        type: "invalid_issue_state",
+        state: "banana",
+        owner: "facebook",
+        repo: "react",
+        number: 123,
+      });
+    }
+  });
+
+  it("should return Err for empty state with context", () => {
+    const result = validateIssueState("", {
+      owner: "facebook",
+      repo: "react",
+      number: 123,
+    });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toEqual({
+        type: "invalid_issue_state",
+        state: "",
+        owner: "facebook",
+        repo: "react",
+        number: 123,
+      });
     }
   });
 });

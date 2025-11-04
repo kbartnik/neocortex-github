@@ -3,17 +3,9 @@ import {
   isValidOwnerName,
   isValidRepoName,
 } from "@core/validation";
-import type { TransformError } from "@ir/errors";
 import type { Result } from "neverthrow";
 import { err, ok } from "neverthrow";
-import type {
-  GitHubIssue,
-  GitHubParseError,
-  GitHubTarget,
-  IssueTarget,
-  RepoTarget,
-} from "./types";
-import { GitHubIssueSchema } from "./types";
+import type { GitHubTarget, IssueTarget, RepoTarget } from "./types-target";
 
 // ============================================================================
 // Utilities
@@ -31,31 +23,6 @@ export const parsePositiveInteger = (input: string): Result<number, string> => {
   }
 
   return ok(num);
-};
-
-// ============================================================================
-// Validation
-// ============================================================================
-
-export const validateIssueState = (
-  state: string,
-  context: {
-    owner: string;
-    repo: string;
-    number: number;
-  },
-): Result<"open" | "closed", TransformError> => {
-  if (state === "open" || state === "closed") {
-    return ok(state);
-  }
-
-  return err({
-    type: "invalid_issue_state",
-    state,
-    owner: context.owner,
-    repo: context.repo,
-    number: context.number,
-  });
 };
 
 // ============================================================================
@@ -242,46 +209,3 @@ export const gitHubUrl: GitHubUrlAPI = {
   parse,
   build,
 };
-
-// ============================================================================
-// GitHub API Response Parsing
-// ============================================================================
-
-/**
- * Parses and validates a GitHub API issue response.
- *
- * This function validates raw data (typically from JSON responses) against the
- * GitHub issue schema, ensuring type safety and data integrity.
- *
- * @param data - Unknown data to parse (typically from API response JSON)
- * @returns A Result containing either the validated GitHubIssue or parsing errors
- *
- * @example
- * ```typescript
- * const apiResponse = await fetch('https://api.github.com/repos/owner/repo/issues/1');
- * const json = await apiResponse.json();
- * const result = parseGitHubIssue(json);
- *
- * if (result.isOk()) {
- *   console.log('Issue:', result.value.title);
- * } else {
- *   console.error('Parse errors:', result.error.issues);
- * }
- * ```
- */
-export function parseGitHubIssue(
-  data: unknown,
-): Result<GitHubIssue, GitHubParseError> {
-  const result = GitHubIssueSchema.safeParse(data);
-
-  if (!result.success) {
-    return err({
-      type: "PARSE_ERROR",
-      issues: result.error.issues.map((issue) => ({
-        path: issue.path,
-        message: issue.message,
-      })),
-    });
-  }
-  return ok(result.data as GitHubIssue);
-}

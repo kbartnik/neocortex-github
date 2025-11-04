@@ -54,7 +54,7 @@ export type DeepReadonly<T> = T extends Primitive
   : T extends ImmutableByConvention
     ? T
     : T extends Array<infer U>
-      ? ReadonlyArray<DeepReadonly<U>>
+      ? readonly DeepReadonly<U>[]
       : T extends Map<infer K, infer V>
         ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>>
         : T extends Set<infer U>

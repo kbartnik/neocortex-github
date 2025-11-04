@@ -1,7 +1,9 @@
-import { HTTP_STATUS } from "@core/HttpStatusCodes";
+import { Octokit } from "@octokit/rest";
 import { ResultAsync } from "neverthrow";
+import { match } from "ts-pattern";
 import type { GitHubClientError } from "./errors";
-import type { GitHubIssue } from "./types";
+import { OctokitErrorParsers } from "./errors";
+import type { GitHubIssue } from "./types-issue";
 
 /**
  * Client for interacting with the GitHub REST API.
@@ -22,6 +24,7 @@ import type { GitHubIssue } from "./types";
  * ```
  */
 export class GitHubClient {
+  private readonly octokit: Octokit;
   /**
    * Creates a new GitHub API client.
    *
@@ -29,7 +32,11 @@ export class GitHubClient {
    *                If not provided, requests will be made without authentication,
    *                which has lower rate limits.
    */
-  constructor(private readonly token?: string) {}
+  constructor(readonly token?: string) {
+    this.octokit = new Octokit({
+      auth: token,
+    });
+  }
 
   /**
    * Fetches a single issue from a GitHub repository.
@@ -59,99 +66,76 @@ export class GitHubClient {
     repo: string,
     issueNumber: number,
   ): ResultAsync<GitHubIssue, GitHubClientError> {
-    const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`;
+    const fallbackUrl = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`;
 
-    const headers: Record<string, string> = {
-      Accept: "application/vnd.github.v3+json",
-      "User-Agent": "neocortex-github/1.0.0",
-    };
-
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
-    }
-
-    // Wrap the entire async operation in ResultAsync.fromPromise
-    // This catches any thrown exceptions and converts them to Results
     return ResultAsync.fromPromise(
-      // The promise we're wrapping
-      (async () => {
-        // First, attempt the fetch call
-        // If this throws (network error), it gets caught by fromPromise
-        const response = await fetch(url, { headers });
+      this.octokit.rest.issues.get({
+        owner,
+        repo,
+        issue_number: issueNumber,
+      }),
+      (error): GitHubClientError => {
+        // Parse error shape with Zod
+        const httpError = OctokitErrorParsers.asHttpError(error);
 
-        // Check if the response is ok (status 200-299)
-        if (!response.ok) {
-          // Map different HTTP error statuses to specific error variants
-          switch (response.status) {
-            case HTTP_STATUS.NOT_FOUND:
-              // Return a value that will be converted to err by our error mapper
-              throw {
-                type: "not_found" as const,
-                owner,
-                repo,
-                issueNumber,
-                url,
-              };
+        // Not an HTTP error - treat as network failure
+        if (!httpError.success) {
+          return {
+            type: "network_error",
+            message: error instanceof Error ? error.message : String(error),
+            cause: error,
+          };
+        }
 
-            case HTTP_STATUS.UNAUTHORIZED:
-              throw {
-                type: "unauthorized" as const,
-                message: "Invalid or missing GitHub token",
-                url,
-              };
+        const { status, message } = httpError.data;
+        const url = OctokitErrorParsers.extractUrl(error, fallbackUrl);
 
-            case HTTP_STATUS.FORBIDDEN: {
-              // Check if this is a rate limit error
-              const retryAfter = response.headers.get("retry-after");
-              throw {
+        // Use pattern matching on validated HTTP status codes
+        return match(status)
+          .with(404, () => ({
+            type: "not_found" as const,
+            owner,
+            repo,
+            issueNumber,
+            url,
+          }))
+          .with(401, () => ({
+            type: "unauthorized" as const,
+            message: message ?? "Unauthorized",
+            url,
+          }))
+          .with(403, () => {
+            // Check for rate limit indicators
+            if (OctokitErrorParsers.hasRateLimitHeaders(error)) {
+              return {
                 type: "rate_limited" as const,
-                retryAfter: retryAfter
-                  ? Number.parseInt(retryAfter, 10)
-                  : undefined,
+                retryAfter: OctokitErrorParsers.extractRetryAfter(error),
                 url,
               };
             }
 
-            default:
-              // Any other non-ok status becomes a server_error
-              if (response.status >= 500) {
-                throw {
-                  type: "server_error" as const,
-                  statusCode: response.status,
-                  statusText: response.statusText,
-                  url,
-                };
-              }
-              // For other 4xx errors we don't recognize
-              throw {
-                type: "forbidden" as const,
-                message: `HTTP ${response.status}: ${response.statusText}`,
-                url,
-              };
-          }
-        }
-
-        // Try to parse the JSON response
-        // If this throws, it gets caught by fromPromise
-        return await response.json();
-      })(),
-
-      // Error mapper function: converts thrown errors to GitHubClientError
-      (error): GitHubClientError => {
-        // If the error is one of our structured error objects (from the switch above)
-        // it's already in the right format, just return it
-        if (typeof error === "object" && error !== null && "type" in error) {
-          return error as GitHubClientError;
-        }
-
-        // Otherwise, it's an unexpected error (network failure, JSON parse error, etc.)
-        const message = error instanceof Error ? error.message : String(error);
-        return {
-          type: "network_error",
-          message,
-          cause: error,
-        };
+            // Otherwise it's a forbidden error
+            return {
+              type: "forbidden" as const,
+              message: message ?? "Forbidden",
+              url,
+            };
+          })
+          .when(
+            (s) => s >= 500 && s < 600,
+            (s) => ({
+              type: "server_error" as const,
+              statusCode: s,
+              statusText: message ?? "Internal Server Error",
+              url,
+            }),
+          )
+          .otherwise(() => ({
+            type: "network_error" as const,
+            message: message ?? String(error),
+            cause: error,
+          }));
       },
-    );
+    ).map((response) => response.data as GitHubIssue);
   }
 }

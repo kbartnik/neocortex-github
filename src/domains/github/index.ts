@@ -7,21 +7,19 @@
 
 // Client
 export { GitHubClient } from "./client";
+
 // Errors
 export type { GitHubClientError } from "./errors";
-
-// Parser/URL utilities
+// URL utilities
+export type { GitHubUrlAPI, GitHubUrlParseError } from "./parser";
+export { gitHubUrl } from "./parser";
+// Issue types and parsing
+export type { GitHubIssue, GitHubParseError } from "./types-issue";
+export { parseGitHubIssue, validateIssueState } from "./types-issue";
+// Target types
 export type {
-  GitHubUrlAPI,
-  GitHubUrlParseError,
-} from "./parser";
-export { gitHubUrl, parseGitHubIssue, validateIssueState } from "./parser";
-// Types
-export type {
-  GitHubIssue,
-  GitHubParseError,
   GitHubTarget,
   IssueTarget,
   RepoTarget,
-} from "./types";
-export { isIssueTarget, isRepoTarget } from "./types";
+} from "./types-target";
+export { isIssueTarget, isRepoTarget } from "./types-target";
